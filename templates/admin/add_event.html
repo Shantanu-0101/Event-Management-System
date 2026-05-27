@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Add Event — Event Management System{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 700px;">
+  
+  <!-- Back Button -->
+  <div class="mb-4">
+    <a href="{{ url_for('admin_dashboard') }}" class="text-muted text-decoration-none small">
+      <i class="bi bi-chevron-left me-1"></i> Back to Dashboard
+    </a>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+    <!-- Header -->
+    <div class="p-4 p-md-5 border-bottom">
+      <h1 class="page-title mb-1" style="font-size: 1.6rem;">Add New Event</h1>
+      <p class="page-subtitle">Populate the form below to publish a new activity for students.</p>
+    </div>
+
+    <!-- Form -->
+    <div class="card-body p-4 p-md-5 bg-light">
+      <form action="{{ url_for('admin_add_event') }}" method="POST">
+        
+        <div class="row g-3">
+          
+          <!-- Event Name -->
+          <div class="col-12">
+            <label for="name" class="form-label">Event Title <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="name" name="name" placeholder="e.g. Inter-College Carrom Championship" required>
+            <div class="form-text text-muted small">Give the event a clear, descriptive name.</div>
+          </div>
+
+          <!-- Category Selection -->
+          <div class="col-md-6 col-12">
+            <label for="category" class="form-label">Category <span class="text-danger">*</span></label>
+            <select class="form-select" id="category" name="category" required>
+              <option value="" disabled selected>Select Category</option>
+              <option value="sports">Sports</option>
+              <option value="cultural">Cultural</option>
+              <option value="social">Social</option>
+              <option value="paper_presentation">Paper Presentation</option>
+              <option value="hackathon">Hackathon</option>
+            </select>
+          </div>
+
+          <!-- Sub Event Type -->
+          <div class="col-md-6 col-12">
+            <label for="sub_event" class="form-label">Sub Event Type <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="sub_event" name="sub_event" placeholder="e.g. Carrom, Chess, Dance, Seminar" required>
+            <div class="form-text text-muted small">Specify the game or specific format.</div>
+          </div>
+
+          <!-- Description -->
+          <div class="col-12">
+            <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
+            <textarea class="form-control" id="description" name="description" rows="4" placeholder="Brief outline of the rules, schedule, prizes, and general details of the event..." required></textarea>
+          </div>
+
+          <!-- Date -->
+          <div class="col-md-6 col-12">
+            <label for="event_date" class="form-label">Event Date <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" id="event_date" name="event_date" required>
+          </div>
+
+          <!-- Venue -->
+          <div class="col-md-6 col-12">
+            <label for="venue" class="form-label">Venue <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="venue" name="venue" placeholder="e.g. Gymkhana, Room 204, Seminar Hall" required>
+          </div>
+
+          <!-- Seat Limit -->
+          <div class="col-md-6 col-12">
+            <label for="max_seats" class="form-label">Seat Limit / Max Slots <span class="text-danger">*</span></label>
+            <input type="number" class="form-control" id="max_seats" name="max_seats" value="50" min="1" required>
+            <div class="form-text text-muted small">Registration blocks once this count is met.</div>
+          </div>
+
+        </div>
+
+        <hr class="my-4 text-muted opacity-25">
+
+        <button type="submit" class="btn btn-dark w-100 py-3 rounded-3" style="font-weight: 500; font-size: 1rem;">
+          Publish Event
+        </button>
+
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

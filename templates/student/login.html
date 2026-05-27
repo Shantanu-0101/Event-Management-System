@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Student Login — Event Management System{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 500px; padding: 4rem 1.5rem;">
+  <div class="card p-4 p-md-5">
+    <div class="text-center mb-4">
+      <i class="bi bi-mortarboard-fill text-primary" style="font-size: 3rem; color: var(--accent) !important;"></i>
+      <h1 class="page-title mt-2">Student Login</h1>
+      <p class="page-subtitle">Access your dashboard & register for events</p>
+    </div>
+
+    <form action="{{ url_for('student_login') }}" method="POST">
+      <div class="mb-3">
+        <label for="email" class="form-label">Email Address</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope text-muted"></i></span>
+          <input type="email" class="form-control border-start-0" id="email" name="email" placeholder="john.doe@csmss.com" required>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label for="password" class="form-label">Password</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock text-muted"></i></span>
+          <input type="password" class="form-control border-start-0" id="password" name="password" placeholder="••••••••" required>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary-custom w-100 py-2.5 mb-3">
+        Login
+      </button>
+    </form>
+
+    <div class="text-center mt-3">
+      <span class="text-muted small">Don't have an account? </span>
+      <a href="{{ url_for('student_signup') }}" style="color: var(--accent); font-weight: 500; text-decoration: none;">Sign up here</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

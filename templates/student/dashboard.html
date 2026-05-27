@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Event Management System{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 1200px;">
+  <!-- Welcome Header -->
+  <div class="row align-items-center mb-5">
+    <div class="col-md-8">
+      <h1 class="page-title">Welcome back, {{ student_name }}!</h1>
+      <p class="page-subtitle">Find and register for upcoming events and manage your current registrations.</p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+      <div class="d-inline-flex align-items-center gap-2 px-3 py-2 bg-white rounded-4 border">
+        <i class="bi bi-calendar2-check-fill text-success fs-4"></i>
+        <div class="text-start">
+          <div class="fw-bold" style="font-size: 1.1rem; line-height: 1;">{{ registrations|length }}</div>
+          <small class="text-muted" style="font-size: 0.75rem;">Registered Events</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Main Column: Category Cards & Sub events -->
+    <div class="col-lg-8">
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <h2 class="h4 mb-0" style="font-family: var(--font-display); font-weight: 700;">Explore Categories</h2>
+        <span class="badge bg-light text-dark border">Select category to view sub-events</span>
+      </div>
+
+      <div class="accordion d-flex flex-column gap-3" id="categoriesAccordion">
+        {% for cat_key, cat_name, cat_icon, cat_badge_class in [
+          ('sports', 'Sports & Games', 'bi-trophy-fill', 'badge-sports'),
+          ('cultural', 'Cultural Events', 'bi-music-note-beamed', 'badge-cultural'),
+          ('social', 'Social Activities', 'bi-people-fill', 'badge-social'),
+          ('paper_presentation', 'Paper Presentation', 'bi-file-earmark-slides-fill', 'badge-paper_presentation'),
+          ('hackathon', 'Hackathons & Coding', 'bi-code-slash', 'badge-hackathon')
+        ] %}
+        
+        {% set cat_events = categories[cat_key] %}
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden" style="transition: transform 0.2s;">
+          <div class="card-header border-0 bg-white p-4" id="heading-{{ cat_key }}">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+              <div class="d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center justify-content-center rounded-3 {{ cat_badge_class }}" style="width: 48px; height: 48px; font-size: 1.4rem;">
+                  <i class="bi {{ cat_icon }}"></i>
+                </div>
+                <div>
+                  <h3 class="h5 mb-0" style="font-family: var(--font-display); font-weight: 700;">{{ cat_name }}</h3>
+                  <small class="text-muted">{{ cat_events|length }} active events available</small>
+                </div>
+              </div>
+              <button class="btn btn-outline-secondary btn-sm border-0 rounded-pill px-3 fs-7" type="button" 
+                      data-bs-toggle="collapse" data-bs-target="#collapse-{{ cat_key }}" 
+                      aria-expanded="false" aria-controls="collapse-{{ cat_key }}"
+                      style="font-family: var(--font-body); font-weight: 500;">
+                <i class="bi bi-chevron-down me-1"></i> View Events
+              </button>
+            </div>
+          </div>
+
+          <div id="collapse-{{ cat_key }}" class="collapse" aria-labelledby="heading-{{ cat_key }}" data-bs-parent="#categoriesAccordion">
+            <div class="card-body bg-light border-top p-4">
+              {% if cat_events %}
+                <div class="row g-3">
+                  {% for event in cat_events %}
+                  <div class="col-12">
+                    <div class="bg-white rounded-3 p-3 border shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                      <div style="flex: 1;">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                          <span class="category-badge {{ cat_badge_class }}">{{ event.sub_event }}</span>
+                          <span class="text-muted small"><i class="bi bi-calendar3 me-1"></i>{{ event.event_date.strftime('%d %b, %Y') if event.event_date else 'TBD' }}</span>
+                        </div>
+                        <h4 class="h6 mb-1" style="font-family: var(--font-display); font-weight: 700; color: var(--text);">{{ event.name }}</h4>
+                        <p class="text-muted small mb-2" style="max-height: 40px; overflow: hidden; text-overflow: ellipsis;">{{ event.description }}</p>
+                        
+                        <div class="d-flex align-items-center gap-3 text-muted small flex-wrap">
+                          <span><i class="bi bi-geo-alt-fill me-1 text-danger"></i>{{ event.venue or 'Campus Hall' }}</span>
+                          <span><i class="bi bi-people-fill me-1"></i>{{ event.slots_left }} / {{ event.max_seats }} slots left</span>
+                        </div>
+                      </div>
+                      
+                      <div class="text-end w-100 w-md-auto mt-2 mt-md-0">
+                        {% if event.id in registered_event_ids %}
+                          <span class="btn btn-success btn-sm rounded-3 disabled w-100 px-4">
+                            <i class="bi bi-patch-check-fill me-1"></i> Registered
+                          </span>
+                        {% elif event.slots_left <= 0 %}
+                          <span class="btn btn-secondary btn-sm rounded-3 disabled w-100 px-4">
+                            Slots Full
+                          </span>
+                        {% else %}
+                          <a href="{{ url_for('student_register', event_id=event.id) }}" class="btn btn-indigo btn-sm rounded-3 w-100 px-4" 
+                             style="background: var(--accent); color: white; border: none; font-weight: 500; transition: background 0.2s;">
+                            Register Now
+                          </a>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <div class="text-center py-4">
+                  <i class="bi bi-info-circle text-muted fs-2"></i>
+                  <p class="text-muted mt-2 mb-0">No active events in this category yet. Stay tuned!</p>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Sidebar Column: My Registrations -->
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+        <h2 class="h5 mb-3" style="font-family: var(--font-display); font-weight: 700;"><i class="bi bi-ticket-perforated-fill text-indigo me-2" style="color: var(--accent);"></i>My Registrations</h2>
+        
+        {% if registrations %}
+          <div class="d-flex flex-column gap-3">
+            {% for reg in registrations %}
+              <div class="p-3 bg-light rounded-3 border">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  {% set category = reg.event.category %}
+                  {% set cat_badge = 'badge-sports' if category=='sports' else ('badge-cultural' if category=='cultural' else ('badge-social' if category=='social' else ('badge-paper_presentation' if category=='paper_presentation' else 'badge-hackathon'))) %}
+                  <span class="category-badge {{ cat_badge }}" style="font-size: 0.65rem;">{{ reg.event.sub_event }}</span>
+                  <small class="text-muted" style="font-size: 0.7rem;">{{ reg.registered_at.strftime('%d %b') }}</small>
+                </div>
+                <h3 class="fw-bold mb-1" style="font-size: 0.85rem; color: var(--text);">{{ reg.event.name }}</h3>
+                <div class="text-muted small" style="font-size: 0.75rem;">
+                  <div><i class="bi bi-geo-alt me-1"></i>{{ reg.event.venue }}</div>
+                  <div><i class="bi bi-calendar-event me-1"></i>{{ reg.event.event_date.strftime('%d %b, %Y') if reg.event.event_date else 'TBD' }}</div>
+                  {% if reg.team_name %}
+                    <div class="mt-1 text-primary"><i class="bi bi-people me-1"></i>Team: <strong>{{ reg.team_name }}</strong></div>
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-5">
+            <i class="bi bi-card-list text-muted fs-1 mb-2"></i>
+            <p class="text-muted mb-0 small">You haven't registered for any events yet.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

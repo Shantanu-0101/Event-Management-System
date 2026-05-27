@@ -1,0 +1,426 @@
+/* ═══════════════════════════════════════════
+   style.css — Event Management System
+   ═══════════════════════════════════════════ */
+
+/* ── Fonts ── */
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500&display=swap');
+
+/* ── CSS Variables ── */
+:root {
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+
+  /* Colors */
+  --bg:           #f8fafc;
+  --nav-bg:       #ffffff;
+  --card-bg:      #ffffff;
+  --border:       #e2e8f0;
+  --text:         #0f172a;
+  --text-muted:   #64748b;
+
+  /* Student accent — deep indigo */
+  --accent:       #4f46e5;
+  --accent-soft:  #eef2ff;
+  --accent-hover: #4338ca;
+
+  /* Admin accent — warm amber */
+  --admin-accent: #d97706;
+  --admin-soft:   #fef3c7;
+  --admin-hover:  #b45309;
+
+  /* Status */
+  --success:      #10b981;
+  --danger:       #ef4444;
+  --warning:      #f59e0b;
+
+  /* Compatibility Mapping */
+  --clr-bg: var(--bg);
+  --clr-border: var(--border);
+  --clr-text: var(--text);
+  --clr-muted: var(--text-muted);
+  --clr-accent: var(--accent);
+  --clr-gold: var(--admin-accent);
+  --clr-hero-bg: #f1f5f9;
+  --clr-dark: #0f172a;
+}
+
+/* ── Reset & Base ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Navbar ── */
+.navbar {
+  height: 60px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 0 var(--border);
+}
+
+.navbar-brand {
+  transition: opacity 0.2s;
+}
+
+.navbar-brand:hover {
+  opacity: 0.75;
+}
+
+.nav-link {
+  transition: color 0.2s;
+}
+
+.nav-link:hover {
+  color: var(--accent) !important;
+}
+
+/* ── Portal Cards (home page) ── */
+.portal-card {
+  background: var(--card-bg);
+  border: 1px solid var(--clr-border);
+  border-radius: 20px;
+  padding: 3rem 2.5rem;
+  max-width: 380px;
+  width: 100%;
+  text-align: center;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.portal-card-icon {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  transition: transform 0.3s ease;
+}
+
+.portal-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+}
+
+.portal-card:hover .portal-card-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+/* ── Custom Navbar Elements ── */
+.nav-pill {
+  color: var(--text-muted) !important;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem !important;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.nav-pill:hover, .nav-pill.active {
+  color: var(--clr-accent) !important;
+  background: var(--accent-soft);
+}
+
+.btn-nav-outline {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--clr-accent);
+  border: 1.5px solid var(--clr-accent);
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.btn-nav-outline:hover {
+  background: var(--clr-accent);
+  color: #0f172a !important;
+}
+
+.btn-nav-solid {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #fff;
+  background: var(--clr-accent);
+  border: 1.5px solid var(--clr-accent);
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.btn-nav-solid:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  color: #fff !important;
+}
+
+.btn-logout {
+  display: inline-block;
+  padding: 0.4rem 0.8rem;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  border-radius: 6px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.btn-logout:hover {
+  background: var(--danger);
+  color: #fff !important;
+}
+
+/* ── Button: Student Primary ── */
+.btn-primary-custom {
+  display: block;
+  width: 100%;
+  padding: 0.65rem 1rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.btn-primary-custom:hover {
+  background: var(--accent-hover);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+/* ── Button: Student Secondary ── */
+.btn-secondary-custom {
+  display: block;
+  width: 100%;
+  padding: 0.65rem 1rem;
+  background: transparent;
+  color: var(--accent);
+  border: 1.5px solid var(--accent);
+  border-radius: 10px;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, transform 0.15s;
+}
+
+.btn-secondary-custom:hover {
+  background: var(--accent-soft);
+  color: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+/* ── Button: Admin ── */
+.btn-admin-custom {
+  display: block;
+  width: 100%;
+  padding: 0.65rem 1rem;
+  background: var(--admin-accent);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.btn-admin-custom:hover {
+  background: var(--admin-hover);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+/* ── Form Controls ── */
+.form-control, .form-select {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text);
+  padding: 0.6rem 0.9rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.1);
+  outline: none;
+}
+
+.form-label {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 0.35rem;
+}
+
+/* ── Cards (general reuse) ── */
+.card {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card-bg);
+  box-shadow: none;
+}
+
+.card-header {
+  background: transparent;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text);
+  padding: 1rem 1.25rem;
+}
+
+/* ── Tables ── */
+.table {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: var(--text);
+}
+
+.table thead th {
+  font-weight: 600;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 1.5px solid var(--border);
+  padding: 0.75rem 1rem;
+  background: var(--bg);
+}
+
+.table tbody td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background: var(--bg);
+}
+
+/* ── Badge / Category Pills ── */
+.badge-sports         { background: #dcfce7; color: #15803d; }
+.badge-cultural       { background: #fce7f3; color: #be185d; }
+.badge-social         { background: #e0f2fe; color: #0369a1; }
+.badge-paper_presentation { background: #fef9c3; color: #854d0e; }
+.badge-hackathon      { background: #f3e8ff; color: #7e22ce; }
+
+.category-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: var(--font-body);
+  letter-spacing: 0.03em;
+}
+
+/* ── Alert overrides ── */
+.alert {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  border: none;
+  border-radius: 10px;
+}
+
+/* ── Page headings (shared across all pages) ── */
+.page-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.8rem;
+  color: var(--text);
+  letter-spacing: -0.03em;
+  margin-bottom: 0.25rem;
+}
+
+.page-subtitle {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+/* ── Stat boxes (admin dashboard) ── */
+.stat-box {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: box-shadow 0.2s;
+}
+
+.stat-box:hover {
+  box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+}
+
+.stat-number {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 2.2rem;
+  color: var(--accent);
+  letter-spacing: -0.04em;
+}
+
+.stat-label {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-top: 0.2rem;
+}
+
+/* ── Footer ── */
+footer {
+  margin-top: auto;
+}
+
+/* ── Responsive ── */
+@media (max-width: 576px) {
+  .portal-card {
+    max-width: 100%;
+  }
+}

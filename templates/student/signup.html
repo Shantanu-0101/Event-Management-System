@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Student Sign Up — Event Management System{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 500px; padding: 4rem 1.5rem;">
+  <div class="card p-4 p-md-5">
+    <div class="text-center mb-4">
+      <i class="bi bi-person-plus-fill text-primary" style="font-size: 3rem; color: var(--accent) !important;"></i>
+      <h1 class="page-title mt-2">Student Sign Up</h1>
+      <p class="page-subtitle">Create your student account to register for events</p>
+    </div>
+
+    <form action="{{ url_for('student_signup') }}" method="POST" class="needs-validation" novalidate>
+      <div class="mb-3">
+        <label for="name" class="form-label">Full Name</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-end-0"><i class="bi bi-person text-muted"></i></span>
+          <input type="text" class="form-control border-start-0" id="name" name="name" placeholder="John Doe" required>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="roll_number" class="form-label">Roll Number</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-end-0"><i class="bi bi-card-text text-muted"></i></span>
+          <input type="text" class="form-control border-start-0" id="roll_number" name="roll_number" placeholder="23CS01" required>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="email" class="form-label">Email Address</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope text-muted"></i></span>
+          <input type="email" class="form-control border-start-0" id="email" name="email" placeholder="john.doe@csmss.com" required>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label for="password" class="form-label">Password</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock text-muted"></i></span>
+          <input type="password" class="form-control border-start-0" id="password" name="password" placeholder="••••••••" required>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary-custom w-100 py-2.5 mb-3">
+        Create Account
+      </button>
+    </form>
+
+    <div class="text-center mt-3">
+      <span class="text-muted small">Already have an account? </span>
+      <a href="{{ url_for('student_login') }}" style="color: var(--accent); font-weight: 500; text-decoration: none;">Login here</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

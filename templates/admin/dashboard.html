@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard — Event Management System{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 1200px;">
+  
+  <!-- Header -->
+  <div class="row align-items-center mb-5">
+    <div class="col">
+      <h1 class="page-title">Admin Dashboard</h1>
+      <p class="page-subtitle">Welcome, <strong>{{ admin_name }}</strong>. Monitor metrics and manage academic events.</p>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="row g-4 mb-5">
+    <!-- Total Events -->
+    <div class="col-md-4 col-sm-12">
+      <div class="stat-box d-flex align-items-center justify-content-between p-4 bg-white rounded-4 border">
+        <div class="text-start">
+          <div class="stat-number text-indigo" style="color: var(--accent);">{{ total_events }}</div>
+          <div class="stat-label">Total Events Added</div>
+        </div>
+        <div class="d-flex align-items-center justify-content-center rounded-3 bg-light text-primary" style="width: 60px; height: 60px; font-size: 1.8rem; background: var(--accent-soft) !important; color: var(--accent) !important;">
+          <i class="bi bi-calendar-event-fill"></i>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Total Registrations -->
+    <div class="col-md-4 col-sm-12">
+      <div class="stat-box d-flex align-items-center justify-content-between p-4 bg-white rounded-4 border">
+        <div class="text-start">
+          <div class="stat-number text-success" style="color: var(--success);">{{ total_registrations }}</div>
+          <div class="stat-label">Student Registrations</div>
+        </div>
+        <div class="d-flex align-items-center justify-content-center rounded-3 bg-light text-success" style="width: 60px; height: 60px; font-size: 1.8rem; background: #e6fbf4 !important; color: var(--success) !important;">
+          <i class="bi bi-ticket-perforated-fill"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Students -->
+    <div class="col-md-4 col-sm-12">
+      <div class="stat-box d-flex align-items-center justify-content-between p-4 bg-white rounded-4 border">
+        <div class="text-start">
+          <div class="stat-number text-warning" style="color: var(--admin-accent);">{{ total_students }}</div>
+          <div class="stat-label">Registered Students</div>
+        </div>
+        <div class="d-flex align-items-center justify-content-center rounded-3 bg-light text-warning" style="width: 60px; height: 60px; font-size: 1.8rem; background: var(--admin-soft) !important; color: var(--admin-accent) !important;">
+          <i class="bi bi-people-fill"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="row g-4">
+    <div class="col-lg-6 col-12">
+      <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+        <h2 class="h5 mb-4" style="font-family: var(--font-display); font-weight: 700;">
+          <i class="bi bi-gear-fill me-2 text-muted"></i>Quick Management
+        </h2>
+        
+        <div class="d-flex flex-column gap-3">
+          <div class="p-3 bg-light rounded-3 border d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+              <h3 class="fw-bold mb-1" style="font-size: 0.95rem; color: var(--text);">Add New College Event</h3>
+              <p class="text-muted small mb-0">Create sports matches, hackathons, and seminars.</p>
+            </div>
+            <a href="{{ url_for('admin_add_event') }}" class="btn btn-sm btn-dark px-3 rounded-pill">
+              <i class="bi bi-plus-lg me-1"></i> Add Event
+            </a>
+          </div>
+
+          <div class="p-3 bg-light rounded-3 border d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+              <h3 class="fw-bold mb-1" style="font-size: 0.95rem; color: var(--text);">Manage Existing Events</h3>
+              <p class="text-muted small mb-0">Browse created events, track remaining slots, and delete events.</p>
+            </div>
+            <a href="{{ url_for('admin_view_events') }}" class="btn btn-sm btn-dark px-3 rounded-pill">
+              <i class="bi bi-search me-1"></i> Browse Events
+            </a>
+          </div>
+
+          <div class="p-3 bg-light rounded-3 border d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+              <h3 class="fw-bold mb-1" style="font-size: 0.95rem; color: var(--text);">View All Registrations</h3>
+              <p class="text-muted small mb-0">Look up student names, roll numbers, departments, and print lists.</p>
+            </div>
+            <a href="{{ url_for('admin_view_registrations') }}" class="btn btn-sm btn-dark px-3 rounded-pill">
+              <i class="bi bi-file-earmark-spreadsheet me-1"></i> Registrations
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Administrative Note / Quick Tips -->
+    <div class="col-lg-6 col-12">
+      <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+        <h2 class="h5 mb-4" style="font-family: var(--font-display); font-weight: 700;">
+          <i class="bi bi-info-circle-fill me-2 text-warning" style="color: var(--admin-accent) !important;"></i>Platform Guide
+        </h2>
+        <div class="text-muted small">
+          <p class="mb-3">Welcome to the College Event Management System (EMS). Use this dashboard to govern registrations and monitor the campus event catalog.</p>
+          
+          <ul class="list-unstyled d-flex flex-column gap-3">
+            <li class="d-flex align-items-start gap-2">
+              <i class="bi bi-check-circle-fill text-success mt-0.5"></i>
+              <div>
+                <strong>Deleting Events:</strong> Deleting an event will instantly and recursively purge all registrations associated with that event. Use this action with caution.
+              </div>
+            </li>
+            <li class="d-flex align-items-start gap-2">
+              <i class="bi bi-check-circle-fill text-success mt-0.5"></i>
+              <div>
+                <strong>Capacity Constraints:</strong> The system automatically caps registration once the specified event seat capacity is reached. Students will see a "Slots Full" status on their dashboard.
+              </div>
+            </li>
+            <li class="d-flex align-items-start gap-2">
+              <i class="bi bi-check-circle-fill text-success mt-0.5"></i>
+              <div>
+                <strong>Excel-Ready Views:</strong> The Registrations page lists student information, team names, and categories. Perfect for copy-pasting into spreadsheet tools.
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Welcome — Event Management System{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<section style="padding: 5rem 2rem 3rem; text-align: center; background: var(--clr-hero-bg);">
+
+  <p style="font-family: var(--font-body); font-size: 0.8rem; letter-spacing: 0.15em;
+            text-transform: uppercase; color: var(--clr-accent); margin-bottom: 1rem;">
+    Academic Event Portal
+  </p>
+
+  <h1 style="font-family: var(--font-display); font-weight: 800; font-size: clamp(2.2rem, 5vw, 3.8rem);
+             color: var(--clr-text); line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 1rem;">
+    Event Management<br/>
+    <span style="color: var(--clr-accent);">System</span>
+  </h1>
+
+  <p style="font-family: var(--font-body); font-size: 1.05rem; color: var(--clr-muted);
+            max-width: 480px; margin: 0 auto 3rem;">
+    Register for sports, cultural, social, paper presentations, and hackathon events — all in one place.
+  </p>
+
+  <!-- TWO CARDS -->
+  <div style="display: flex; gap: 1.5rem; justify-content: center;
+              flex-wrap: wrap; max-width: 820px; margin: 0 auto;">
+
+    <!-- Student Card -->
+    <div class="portal-card" style="border-color: var(--clr-accent);">
+      <div class="portal-card-icon" style="background: rgba(99,179,237,0.12); color: var(--clr-accent);">
+        <i class="bi bi-mortarboard-fill"></i>
+      </div>
+      <h2 style="font-family: var(--font-display); font-weight: 700; font-size: 1.4rem;
+                 color: var(--clr-text); margin-bottom: 0.4rem;">Student Portal</h2>
+      <p style="font-family: var(--font-body); font-size: 0.9rem; color: var(--clr-muted);
+                margin-bottom: 1.6rem; line-height: 1.6;">
+        Browse events by category, fill your registration form, and track your sign-ups.
+      </p>
+      <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+        <a href="{{ url_for('student_login') }}"
+           style="display: block; padding: 0.65rem 1.2rem; border-radius: 8px;
+                  background: var(--clr-accent); color: #0d1117;
+                  font-family: var(--font-body); font-weight: 500; font-size: 0.9rem;
+                  text-decoration: none; transition: opacity 0.2s;">
+          <i class="bi bi-box-arrow-in-right me-1"></i> Login
+        </a>
+        <a href="{{ url_for('student_signup') }}"
+           style="display: block; padding: 0.65rem 1.2rem; border-radius: 8px;
+                  border: 1px solid var(--clr-accent); color: var(--clr-accent);
+                  font-family: var(--font-body); font-weight: 500; font-size: 0.9rem;
+                  text-decoration: none; transition: background 0.2s;">
+          <i class="bi bi-person-plus me-1"></i> Sign Up
+        </a>
+      </div>
+    </div>
+
+    <!-- Admin Card -->
+    <div class="portal-card" style="border-color: var(--clr-gold);">
+      <div class="portal-card-icon" style="background: rgba(246,173,85,0.12); color: var(--clr-gold);">
+        <i class="bi bi-shield-lock-fill"></i>
+      </div>
+      <h2 style="font-family: var(--font-display); font-weight: 700; font-size: 1.4rem;
+                 color: var(--clr-text); margin-bottom: 0.4rem;">Admin Portal</h2>
+      <p style="font-family: var(--font-body); font-size: 0.9rem; color: var(--clr-muted);
+                margin-bottom: 1.6rem; line-height: 1.6;">
+        Manage events, view all student registrations, and control the entire event calendar.
+      </p>
+      <a href="{{ url_for('admin_login') }}"
+         style="display: block; padding: 0.65rem 1.2rem; border-radius: 8px;
+                background: var(--clr-gold); color: #0d1117;
+                font-family: var(--font-body); font-weight: 500; font-size: 0.9rem;
+                text-decoration: none; transition: opacity 0.2s;">
+        <i class="bi bi-box-arrow-in-right me-1"></i> Admin Login
+      </a>
+    </div>
+
+  </div>
+
+</section>
+
+{% endblock %}

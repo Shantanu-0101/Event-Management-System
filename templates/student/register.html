@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Register for {{ event.name }} — Event Management System{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 650px;">
+  
+  <!-- Back Button -->
+  <div class="mb-4">
+    <a href="{{ url_for('student_dashboard') }}" class="text-muted text-decoration-none small">
+      <i class="bi bi-chevron-left me-1"></i> Back to Dashboard
+    </a>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <!-- Header -->
+    {% set cat_badge_class = 'badge-sports' if event.category=='sports' else ('badge-cultural' if event.category=='cultural' else ('badge-social' if event.category=='social' else ('badge-paper_presentation' if event.category=='paper_presentation' else 'badge-hackathon'))) %}
+    <div class="p-4 p-md-5 border-bottom bg-white">
+      <span class="category-badge {{ cat_badge_class }} mb-2">{{ event.sub_event }}</span>
+      <h1 class="page-title mb-1" style="font-size: 1.6rem;">Register for {{ event.name }}</h1>
+      <p class="text-muted small mb-0">{{ event.description }}</p>
+      
+      <div class="d-flex align-items-center gap-4 text-muted small mt-4 flex-wrap">
+        <span><i class="bi bi-calendar3 me-1 text-primary"></i>{{ event.event_date.strftime('%d %b, %Y') if event.event_date else 'TBD' }}</span>
+        <span><i class="bi bi-geo-alt-fill me-1 text-danger"></i>{{ event.venue }}</span>
+        <span><i class="bi bi-people-fill me-1 text-success"></i>{{ slots_left }} slots remaining</span>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <div class="card-body p-4 p-md-5 bg-light">
+      <form action="{{ url_for('student_register', event_id=event.id) }}" method="POST">
+        
+        <h3 class="h6 mb-3 text-muted text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em;">Student Information (Auto-Filled)</h3>
+        
+        <div class="row g-3 mb-4">
+          <div class="col-md-6 col-12">
+            <label for="student_name" class="form-label">Full Name</label>
+            <input type="text" class="form-control bg-white" id="student_name" name="student_name" value="{{ student.name }}" readonly>
+          </div>
+          
+          <div class="col-md-6 col-12">
+            <label for="roll_no" class="form-label">Roll Number</label>
+            <input type="text" class="form-control bg-white" id="roll_no" name="roll_no" value="{{ student.roll_number }}" readonly>
+          </div>
+
+          <div class="col-12">
+            <label for="email" class="form-label">Email Address</label>
+            <input type="email" class="form-control bg-white" id="email" name="email" value="{{ student.email }}" readonly>
+          </div>
+        </div>
+
+        <hr class="my-4 text-muted opacity-25">
+        <h3 class="h6 mb-3 text-muted text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em;">Additional Details</h3>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6 col-12">
+            <label for="phone" class="form-label">Phone Number <span class="text-danger">*</span></label>
+            <input type="tel" class="form-control" id="phone" name="phone" placeholder="9876543210" pattern="[0-9]{10}" title="Ten digit mobile number" required>
+          </div>
+
+          <div class="col-md-6 col-12">
+            <label for="year" class="form-label">Academic Year <span class="text-danger">*</span></label>
+            <select class="form-select" id="year" name="year" required>
+              <option value="" disabled selected>Select Year</option>
+              <option value="1st Year">1st Year</option>
+              <option value="2nd Year">2nd Year</option>
+              <option value="3rd Year">3rd Year</option>
+              <option value="4th Year">4th Year</option>
+            </select>
+          </div>
+
+          <div class="col-12">
+            <label for="department" class="form-label">Department <span class="text-danger">*</span></label>
+            <select class="form-select" id="department" name="department" required>
+              <option value="" disabled selected>Select Department</option>
+              <option value="Computer Science & Engineering">Computer Science & Engineering</option>
+              <option value="Information Technology">Information Technology</option>
+              <option value="Mechanical Engineering">Mechanical Engineering</option>
+              <option value="Electrical Engineering">Electrical Engineering</option>
+              <option value="Electronics & Telecommunication">Electronics & Telecommunication</option>
+              <option value="Civil Engineering">Civil Engineering</option>
+              <option value="MBA / Business Management">MBA / Business Management</option>
+            </select>
+          </div>
+
+          {% if event.category == 'hackathon' or 'hack' in event.name|lower or 'team' in event.description|lower %}
+          <div class="col-12">
+            <div class="p-3 bg-white border rounded-3">
+              <label for="team_name" class="form-label fw-bold">Team Name <span class="text-muted">(Required for Hackathons/Group Events)</span></label>
+              <input type="text" class="form-control" id="team_name" name="team_name" placeholder="Enter Team Name" required>
+              <div class="form-text text-muted small mt-1">If registering individually, please enter your name as the team name.</div>
+            </div>
+          </div>
+          {% else %}
+          <div class="col-12">
+            <label for="team_name" class="form-label">Team Name <span class="text-muted">(Optional)</span></label>
+            <input type="text" class="form-control" id="team_name" name="team_name" placeholder="Leave blank if registering solo">
+          </div>
+          {% endif %}
+        </div>
+
+        <button type="submit" class="btn-primary-custom w-100 py-3 mt-2" style="font-size: 1rem;">
+          Confirm Registration
+        </button>
+
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

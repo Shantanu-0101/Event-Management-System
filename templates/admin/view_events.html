@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Manage Events — Event Management System{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 1200px;">
+
+  <!-- Header -->
+  <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+    <div>
+      <h1 class="page-title">Manage Events</h1>
+      <p class="page-subtitle">View active activities, track seat occupancy, and remove events.</p>
+    </div>
+    <a href="{{ url_for('admin_add_event') }}" class="btn btn-dark rounded-pill btn-sm px-3">
+      <i class="bi bi-plus-lg me-1"></i> Create Event
+    </a>
+  </div>
+
+  <!-- Events List Table -->
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+    <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Event Name</th>
+            <th>Sub Event</th>
+            <th>Date</th>
+            <th>Venue</th>
+            <th class="text-center">Occupancy</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if events %}
+            {% for event in events %}
+            {% set category = event.category %}
+            {% set cat_badge = 'badge-sports' if category=='sports' else ('badge-cultural' if category=='cultural' else ('badge-social' if category=='social' else ('badge-paper_presentation' if category=='paper_presentation' else 'badge-hackathon'))) %}
+            <tr>
+              <td>
+                <span class="category-badge {{ cat_badge }}">{{ category|replace('_', ' ')|capitalize }}</span>
+              </td>
+              <td>
+                <div class="fw-bold text-dark">{{ event.name }}</div>
+                <small class="text-muted text-truncate d-inline-block" style="max-width: 250px;">{{ event.description }}</small>
+              </td>
+              <td>
+                <span class="badge bg-light text-dark border">{{ event.sub_event }}</span>
+              </td>
+              <td>
+                <i class="bi bi-calendar-event me-1 text-muted"></i>{{ event.event_date.strftime('%d %b, %Y') if event.event_date else 'TBD' }}
+              </td>
+              <td>
+                <i class="bi bi-geo-alt me-1 text-muted"></i>{{ event.venue }}
+              </td>
+              <td class="text-center">
+                {% set count = event.registrations|length %}
+                <span class="fw-bold {% if count >= event.max_seats %}text-danger{% else %}text-success{% endif %}">
+                  {{ count }}
+                </span>
+                <span class="text-muted">/ {{ event.max_seats }}</span>
+                <div class="progress mt-1" style="height: 5px; width: 80px; margin: 0 auto;">
+                  {% set percent = (count / event.max_seats * 100)|int %}
+                  <div class="progress-bar {% if percent >= 100 %}bg-danger{% elif percent >= 80 %}bg-warning{% else %}bg-success{% endif %}" 
+                       role="progressbar" style="width: {{ percent }}%;"></div>
+                </div>
+              </td>
+              <td class="text-end">
+                <form action="{{ url_for('admin_delete_event', event_id=event.id) }}" method="POST" 
+                      onsubmit="return confirm('Are you absolutely sure you want to delete this event? All student registrations under this event will be deleted permanentely!');" 
+                      class="d-inline">
+                  <button type="submit" class="btn btn-outline-danger btn-sm border-0 rounded-circle" style="width: 32px; height: 32px; padding: 0;">
+                    <i class="bi bi-trash-fill"></i>
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="7" class="text-center py-5 text-muted">
+                <i class="bi bi-calendar-x fs-1 mb-2"></i>
+                <p class="mb-0">No events found in the database. Add an event to begin!</p>
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

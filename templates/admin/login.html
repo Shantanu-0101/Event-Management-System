@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Admin Login — Event Management System{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 500px; padding: 4rem 1.5rem;">
+  <div class="card p-4 p-md-5">
+    <div class="text-center mb-4">
+      <i class="bi bi-shield-lock-fill text-warning" style="font-size: 3rem; color: var(--admin-accent) !important;"></i>
+      <h1 class="page-title mt-2">Admin Portal</h1>
+      <p class="page-subtitle">Sign in to manage events & registrations</p>
+    </div>
+
+    <form action="{{ url_for('admin_login') }}" method="POST">
+      <div class="mb-3">
+        <label for="email" class="form-label">Admin Email</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope text-muted"></i></span>
+          <input type="email" class="form-control border-start-0" id="email" name="email" placeholder="admin@csmss.com" required>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label for="password" class="form-label">Password</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock text-muted"></i></span>
+          <input type="password" class="form-control border-start-0" id="password" name="password" placeholder="••••••••" required>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-admin-custom w-100 py-2.5 mb-3">
+        Sign In
+      </button>
+    </form>
+
+    <div class="text-center mt-3">
+      <span class="text-muted small">Are you a student? </span>
+      <a href="{{ url_for('student_login') }}" style="color: var(--accent); font-weight: 500; text-decoration: none;">Login here</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
