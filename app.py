@@ -205,7 +205,6 @@ def student_register(event_id):
 
 # ══════════════════════════════════════════════
 # ADMIN ROUTES
-# ══════════════════════════════════════════════
  
 # ── Admin Login ──
 @app.route('/admin/login', methods=['GET', 'POST'])
@@ -226,7 +225,7 @@ def admin_login():
     return render_template('admin/login.html')
  
  
-# ── Admin Logout ──
+# Admin Logout
 @app.route('/admin/logout')
 def admin_logout():
     session.pop('admin_id', None)
@@ -234,7 +233,7 @@ def admin_logout():
     return redirect(url_for('admin_login'))
  
  
-# ── Admin Dashboard ──
+# Admin Dashboard
 @app.route('/admin/dashboard')
 def admin_dashboard():
     if 'admin_id' not in session:
@@ -251,7 +250,7 @@ def admin_dashboard():
                            total_students=total_students)
  
  
-# ── Admin: View All Events ──
+# Admin: View All Events
 @app.route('/admin/events')
 def admin_view_events():
     if 'admin_id' not in session:
@@ -261,7 +260,7 @@ def admin_view_events():
     return render_template('admin/view_events.html', events=events)
  
  
-# ── Admin: Add Event ──
+# Admin: Add Event
 @app.route('/admin/events/add', methods=['GET', 'POST'])
 def admin_add_event():
     if 'admin_id' not in session:
@@ -288,7 +287,7 @@ def admin_add_event():
     return render_template('admin/add_event.html')
  
  
-# ── Admin: Delete Event
+# Admin: Delete Event
 @app.route('/admin/events/delete/<int:event_id>', methods=['POST'])
 def admin_delete_event(event_id):
     if 'admin_id' not in session:
