@@ -288,7 +288,7 @@ def admin_add_event():
     return render_template('admin/add_event.html')
  
  
-# ── Admin: Delete Event ──
+# ── Admin: Delete Event
 @app.route('/admin/events/delete/<int:event_id>', methods=['POST'])
 def admin_delete_event(event_id):
     if 'admin_id' not in session:
@@ -301,7 +301,7 @@ def admin_delete_event(event_id):
     return redirect(url_for('admin_view_events'))
  
  
-# ── Admin: View All Registrations ──
+# Admin: View All Registrations
 @app.route('/admin/registrations')
 def admin_view_registrations():
     if 'admin_id' not in session:
