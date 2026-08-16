@@ -1,11 +1,10 @@
 from flask import Flask, render_template, request, redirect, session, url_for, flash
 from models import db, Admin, Student, Event, Registration
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime, timezone, timedelta
+from datetime import datetime
 from werkzeug.utils import secure_filename
-import io
-import os
+
+
 
 app = Flask(__name__)
 
