@@ -1,0 +1,335 @@
+// Data model from spec section 6. Tables use snake_case names in PostgreSQL;
+// fields are camelCase in TypeScript and mapped to snake_case columns.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ──────────────────────────────────────────────────────────────────
+
+enum Role {
+  STUDENT
+  COORDINATOR
+  ADMIN
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  REG_CLOSED
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum Participation {
+  SOLO
+  TEAM
+}
+
+// For team events: does one team take one seat, or does each member take one?
+enum SeatPer {
+  TEAM
+  MEMBER
+}
+
+enum TeamMemberStatus {
+  INVITED
+  ACCEPTED
+  DECLINED
+}
+
+enum RegistrationStatus {
+  CONFIRMED
+  WAITLISTED
+  CANCELLED
+}
+
+enum CertificateType {
+  PARTICIPATION
+  MERIT
+}
+
+// ─── People and master data ─────────────────────────────────────────────────
+
+model User {
+  id              String    @id @default(cuid())
+  name            String
+  email           String    @unique
+  // Null for accounts that only sign in with Google.
+  passwordHash    String?   @map("password_hash")
+  // Students have a roll number; staff accounts may not.
+  rollNo          String?   @unique @map("roll_no")
+  departmentId    String?   @map("department_id")
+  year            Int?
+  phone           String?
+  photoUrl        String?   @map("photo_url")
+  role            Role      @default(STUDENT)
+  emailVerifiedAt DateTime? @map("email_verified_at")
+  isActive        Boolean   @default(true) @map("is_active")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  department      Department?        @relation(fields: [departmentId], references: [id])
+  eventsCreated   Event[]            @relation("EventCreatedBy")
+  coordinating    EventCoordinator[]
+  teamsLed        Team[]             @relation("TeamLeader")
+  teamMemberships TeamMember[]
+  registrations   Registration[]     @relation("RegistrationUser")
+  checkIns        Registration[]     @relation("RegistrationCheckedInBy")
+  feedback        Feedback[]
+  notifications   Notification[]
+  auditLogs       AuditLog[]
+
+  @@index([departmentId])
+  @@map("users")
+}
+
+model Department {
+  id   String @id @default(cuid())
+  name String @unique
+  code String @unique
+
+  users       User[]
+  eligibility EventEligibility[]
+
+  @@map("departments")
+}
+
+model Category {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  slug        String  @unique
+  description String?
+  // Name of a lucide-react icon, e.g. "trophy".
+  icon        String?
+  sortOrder   Int     @default(0) @map("sort_order")
+  isActive    Boolean @default(true) @map("is_active")
+
+  events Event[]
+
+  @@map("categories")
+}
+
+model Venue {
+  id       String  @id @default(cuid())
+  name     String  @unique
+  building String?
+  capacity Int?
+
+  events Event[]
+
+  @@map("venues")
+}
+
+// ─── Events ─────────────────────────────────────────────────────────────────
+
+model Event {
+  id            String        @id @default(cuid())
+  title         String
+  slug          String        @unique
+  categoryId    String        @map("category_id")
+  subEvent      String?       @map("sub_event")
+  description   String
+  posterUrl     String?       @map("poster_url")
+  rulesUrl      String?       @map("rules_url")
+  venueId       String?       @map("venue_id")
+  startsAt      DateTime      @map("starts_at")
+  endsAt        DateTime      @map("ends_at")
+  regOpensAt    DateTime      @map("reg_opens_at")
+  regClosesAt   DateTime      @map("reg_closes_at")
+  // Null means no seat limit.
+  capacity      Int?
+  participation Participation @default(SOLO)
+  teamMin       Int?          @map("team_min")
+  teamMax       Int?          @map("team_max")
+  seatPer       SeatPer       @default(TEAM) @map("seat_per")
+  status        EventStatus   @default(DRAFT)
+  createdById   String        @map("created_by")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  category      Category           @relation(fields: [categoryId], references: [id])
+  venue         Venue?             @relation(fields: [venueId], references: [id])
+  createdBy     User               @relation("EventCreatedBy", fields: [createdById], references: [id])
+  eligibility   EventEligibility[]
+  coordinators  EventCoordinator[]
+  teams         Team[]
+  registrations Registration[]
+  results       Result[]
+  feedback      Feedback[]
+
+  @@index([status, startsAt])
+  @@index([categoryId])
+  @@map("events")
+}
+
+// No rows for an event = open to every department and year.
+model EventEligibility {
+  id           String  @id @default(cuid())
+  eventId      String  @map("event_id")
+  departmentId String? @map("department_id")
+  year         Int?
+
+  event      Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  department Department? @relation(fields: [departmentId], references: [id])
+
+  @@index([eventId])
+  @@map("event_eligibility")
+}
+
+model EventCoordinator {
+  eventId String @map("event_id")
+  userId  String @map("user_id")
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@id([eventId, userId])
+  @@index([userId])
+  @@map("event_coordinators")
+}
+
+// ─── Teams and registration ─────────────────────────────────────────────────
+
+model Team {
+  id         String   @id @default(cuid())
+  eventId    String   @map("event_id")
+  name       String
+  leaderId   String   @map("leader_id")
+  inviteCode String   @unique @map("invite_code")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  event         Event          @relation(fields: [eventId], references: [id])
+  leader        User           @relation("TeamLeader", fields: [leaderId], references: [id])
+  members       TeamMember[]
+  registrations Registration[]
+  results       Result[]
+
+  @@unique([eventId, name])
+  @@map("teams")
+}
+
+model TeamMember {
+  teamId    String           @map("team_id")
+  userId    String           @map("user_id")
+  status    TeamMemberStatus @default(INVITED)
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id])
+
+  @@id([teamId, userId])
+  @@index([userId])
+  @@map("team_members")
+}
+
+// Seats taken = CONFIRMED rows for the event.
+model Registration {
+  id               String             @id @default(cuid())
+  eventId          String             @map("event_id")
+  userId           String             @map("user_id")
+  teamId           String?            @map("team_id")
+  status           RegistrationStatus
+  waitlistPosition Int?               @map("waitlist_position")
+  // Issued when the registration is confirmed.
+  ticketCode       String?            @unique @map("ticket_code")
+  checkedInAt      DateTime?          @map("checked_in_at")
+  checkedInById    String?            @map("checked_in_by")
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+
+  event        Event         @relation(fields: [eventId], references: [id])
+  user         User          @relation("RegistrationUser", fields: [userId], references: [id])
+  team         Team?         @relation(fields: [teamId], references: [id])
+  checkedInBy  User?         @relation("RegistrationCheckedInBy", fields: [checkedInById], references: [id])
+  results      Result[]
+  certificates Certificate[]
+
+  @@unique([eventId, userId])
+  @@index([eventId, status])
+  @@map("registrations")
+}
+
+// ─── After the event ────────────────────────────────────────────────────────
+
+// Winner is either a solo registration or a team.
+model Result {
+  id             String  @id @default(cuid())
+  eventId        String  @map("event_id")
+  position       Int
+  registrationId String? @map("registration_id")
+  teamId         String? @map("team_id")
+
+  event        Event         @relation(fields: [eventId], references: [id])
+  registration Registration? @relation(fields: [registrationId], references: [id])
+  team         Team?         @relation(fields: [teamId], references: [id])
+
+  @@index([eventId])
+  @@map("results")
+}
+
+model Certificate {
+  id             String          @id @default(cuid())
+  registrationId String          @map("registration_id")
+  type           CertificateType
+  verifyCode     String          @unique @map("verify_code")
+  pdfUrl         String?         @map("pdf_url")
+  issuedAt       DateTime        @default(now()) @map("issued_at")
+
+  registration Registration @relation(fields: [registrationId], references: [id])
+
+  @@unique([registrationId, type])
+  @@map("certificates")
+}
+
+model Feedback {
+  id        String   @id @default(cuid())
+  eventId   String   @map("event_id")
+  userId    String   @map("user_id")
+  // 1 to 5, validated by the server's Zod schema.
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  event Event @relation(fields: [eventId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@unique([eventId, userId])
+  @@map("feedback")
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  title     String
+  body      String
+  link      String?
+  readAt    DateTime? @map("read_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?  @map("actor_id")
+  action    String
+  entity    String
+  entityId  String   @map("entity_id")
+  meta      Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  actor User? @relation(fields: [actorId], references: [id])
+
+  @@index([entity, entityId])
+  @@map("audit_logs")
+}

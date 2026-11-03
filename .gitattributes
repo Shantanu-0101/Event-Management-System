@@ -1,0 +1,6 @@
+# Keep LF line endings on every OS so Prettier's check passes on Windows too.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.ico binary
+*.db binary
