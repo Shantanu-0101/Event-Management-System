@@ -49,3 +49,6 @@ legacy-flask/venv/
 legacy-flask/instance/
 __pycache__/
 *.pyc
+
+# Files uploaded in development (storage.ts)
+/public/uploads/
