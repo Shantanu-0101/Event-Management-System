@@ -30,7 +30,7 @@ export const metadata: Metadata = { title: "Users" };
 
 export default function UsersPage({ searchParams }: PageProps<"/manage/users">) {
   return (
-    <div className="mx-auto grid max-w-6xl gap-6 px-4 py-10">
+    <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)] gap-6 px-4 py-10">
       <AdminHeader
         current="/manage/users"
         title="Users"

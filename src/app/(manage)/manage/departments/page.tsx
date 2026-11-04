@@ -22,7 +22,7 @@ export const metadata: Metadata = { title: "Departments" };
 
 export default function DepartmentsPage({ searchParams }: PageProps<"/manage/departments">) {
   return (
-    <div className="mx-auto grid max-w-6xl gap-6 px-4 py-10">
+    <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)] gap-6 px-4 py-10">
       <AdminHeader
         current="/manage/departments"
         title="Departments"
@@ -46,7 +46,7 @@ async function DepartmentsContent({
     <>
       {(saved || deleted) && <SavedNotice text={deleted ? "Deleted." : "Saved."} />}
 
-      <div className="grid items-start gap-6 lg:grid-cols-[1fr_22rem]">
+      <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="rounded-xl border">
           <Table>
             <TableHeader>

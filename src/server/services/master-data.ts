@@ -23,6 +23,8 @@ export function uniqueClash(e: unknown, labels: Record<string, string>): MasterD
   return new MasterDataError(`Another row already uses this ${labels[field]}.`, field);
 }
 
+const count = (n: number, noun: string) => `${n} ${noun}${n === 1 ? "" : "s"}`;
+
 export async function listDepartments() {
   return prisma.department.findMany({
     orderBy: { name: "asc" },
@@ -37,7 +39,7 @@ export async function deleteDepartment(id: string) {
   });
   if (d._count.users + d._count.eligibility > 0) {
     throw new MasterDataError(
-      `${d.name} has ${d._count.users} users and ${d._count.eligibility} event rules; move them first.`,
+      `${d.name} has ${count(d._count.users, "user")} and ${count(d._count.eligibility, "event rule")}; move them first.`,
     );
   }
   await prisma.department.delete({ where: { id } });
@@ -57,7 +59,7 @@ export async function deleteCategory(id: string) {
   });
   if (c._count.events > 0) {
     throw new MasterDataError(
-      `${c.name} has ${c._count.events} events. Untick "Shown on the site" to hide it instead.`,
+      `${c.name} has ${count(c._count.events, "event")}. Untick "Shown on the site" to hide it instead.`,
     );
   }
   await prisma.category.delete({ where: { id } });
@@ -76,7 +78,9 @@ export async function deleteVenue(id: string) {
     include: { _count: { select: { events: true } } },
   });
   if (v._count.events > 0) {
-    throw new MasterDataError(`${v.name} is used by ${v._count.events} events; move them first.`);
+    throw new MasterDataError(
+      `${v.name} is used by ${count(v._count.events, "event")}; move them first.`,
+    );
   }
   await prisma.venue.delete({ where: { id } });
 }
