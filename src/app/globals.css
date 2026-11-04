@@ -128,3 +128,34 @@
     @apply font-sans;
   }
 }
+
+@layer components {
+  /* Event descriptions: shown on the event page and inside the editor. */
+  .rich-text {
+    @apply text-sm leading-relaxed break-words;
+  }
+  .rich-text > * + * {
+    @apply mt-3;
+  }
+  .rich-text h2 {
+    @apply text-lg font-semibold;
+  }
+  .rich-text h3 {
+    @apply text-base font-semibold;
+  }
+  .rich-text ul {
+    @apply list-disc pl-5;
+  }
+  .rich-text ol {
+    @apply list-decimal pl-5;
+  }
+  .rich-text li > * + * {
+    @apply mt-1;
+  }
+  .rich-text blockquote {
+    @apply border-l-2 pl-3 text-muted-foreground;
+  }
+  .rich-text a {
+    @apply underline underline-offset-4;
+  }
+}

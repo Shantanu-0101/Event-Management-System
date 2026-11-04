@@ -2,6 +2,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 const tabs = [
+  { href: "/manage/events", label: "Events" },
   { href: "/manage/users", label: "Users" },
   { href: "/manage/departments", label: "Departments" },
   { href: "/manage/categories", label: "Categories" },

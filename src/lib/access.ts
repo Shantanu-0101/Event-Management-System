@@ -14,6 +14,7 @@ const rules: { prefix: string; roles: readonly Role[] }[] = [
   { prefix: "/manage/categories", roles: ADMIN_ONLY },
   { prefix: "/manage/venues", roles: ADMIN_ONLY },
   { prefix: "/manage/reports", roles: ADMIN_ONLY },
+  { prefix: "/manage/events/new", roles: ADMIN_ONLY },
   { prefix: "/manage", roles: STAFF_ROLES },
   { prefix: "/profile", roles: ALL_ROLES },
   { prefix: "/my-events", roles: ALL_ROLES },

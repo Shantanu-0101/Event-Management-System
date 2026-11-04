@@ -92,13 +92,17 @@ export function SubmitButton({
   className,
   variant,
   size,
+  pending: pendingProp,
 }: {
   children: React.ReactNode;
   className?: string;
   variant?: React.ComponentProps<typeof Button>["variant"];
   size?: React.ComponentProps<typeof Button>["size"];
+  /** For forms that submit by hand, which useFormStatus can't see. */
+  pending?: boolean;
 }) {
-  const { pending } = useFormStatus();
+  const status = useFormStatus();
+  const pending = pendingProp || status.pending;
   return (
     <Button type="submit" disabled={pending} className={className} variant={variant} size={size}>
       {pending && <LoaderCircleIcon className="animate-spin" aria-hidden />}
