@@ -1,0 +1,5 @@
+legacy-flask/
+src/generated/
+prisma/migrations/
+package-lock.json
+AGENTS.md
