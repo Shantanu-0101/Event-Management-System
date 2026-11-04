@@ -1,8 +1,9 @@
 import { createHash, randomBytes } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { MAX_UPLOAD_BYTES } from "@/lib/upload-limits";
 
-// Stores uploaded images (profile photos now, event posters in Phase 2).
+// Stores uploaded files: profile photos, event posters and rules PDFs.
 // With CLOUDINARY_URL set (cloudinary://<key>:<secret>@<cloud name>) files go
 // to Cloudinary's free tier. Without it, development saves them under
 // public/uploads/ (ignored by git); production refuses uploads.
@@ -12,9 +13,53 @@ export const IMAGE_TYPES: Record<string, string> = {
   "image/png": "png",
   "image/webp": "webp",
 };
-export const MAX_IMAGE_BYTES = 3 * 1024 * 1024;
 
 export class UploadError extends Error {}
+
+/**
+ * Whether a URL is one this module hands out. Forms send uploaded URLs back in
+ * a hidden field, so the server must not trust them blindly: a "rules link"
+ * could otherwise point anywhere, or run a script.
+ */
+export function isUploadedUrl(url: string) {
+  return (
+    /^\/uploads\/[a-z0-9-]+\/[a-f0-9]+\.(jpg|png|webp|pdf)$/.test(url) ||
+    /^https:\/\/res\.cloudinary\.com\/[\w./-]+$/.test(url)
+  );
+}
+
+function refuseInProduction() {
+  if (process.env.NODE_ENV === "production") {
+    throw new UploadError("Uploads are not set up yet. Ask the admin to add CLOUDINARY_URL.");
+  }
+}
+
+async function saveLocally(bytes: Uint8Array, folder: string, name: string) {
+  const dir = path.join(process.cwd(), "public", "uploads", folder);
+  await mkdir(dir, { recursive: true });
+  await writeFile(path.join(dir, name), bytes);
+  return `/uploads/${folder}/${name}`;
+}
+
+/** Saves a PDF and returns its public URL. Throws UploadError for bad files. */
+export async function savePdf(file: File, folder: string): Promise<string> {
+  if (file.type !== "application/pdf") throw new UploadError("Use a PDF file.");
+  if (file.size > MAX_UPLOAD_BYTES) throw new UploadError("Use a PDF under 3 MB.");
+
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const isPdf = String.fromCharCode(...bytes.slice(0, 5)) === "%PDF-";
+  if (!isPdf) throw new UploadError("That file is not a valid PDF.");
+
+  const name = `${randomBytes(12).toString("hex")}.pdf`;
+  const cloudinary = process.env.CLOUDINARY_URL;
+  if (cloudinary) {
+    // Cloudinary keeps non-images as "raw" files; the public id needs the
+    // extension so the link downloads as a PDF.
+    return uploadToCloudinary(cloudinary, bytes, file.type, folder, { raw: true, publicId: name });
+  }
+  refuseInProduction();
+  return saveLocally(bytes, folder, name);
+}
 
 /** Checks the file's first bytes, so a renamed file can't pass as an image. */
 function looksLikeImage(bytes: Uint8Array, type: string) {
@@ -30,7 +75,7 @@ function looksLikeImage(bytes: Uint8Array, type: string) {
 export async function saveImage(file: File, folder: string): Promise<string> {
   const ext = IMAGE_TYPES[file.type];
   if (!ext) throw new UploadError("Use a JPG, PNG or WebP image.");
-  if (file.size > MAX_IMAGE_BYTES) throw new UploadError("Use an image under 3 MB.");
+  if (file.size > MAX_UPLOAD_BYTES) throw new UploadError("Use an image under 3 MB.");
 
   const bytes = new Uint8Array(await file.arrayBuffer());
   if (!looksLikeImage(bytes, file.type)) throw new UploadError("That file is not a valid image.");
@@ -39,13 +84,8 @@ export async function saveImage(file: File, folder: string): Promise<string> {
   const cloudinary = process.env.CLOUDINARY_URL;
   if (cloudinary) return uploadToCloudinary(cloudinary, bytes, file.type, folder);
 
-  if (process.env.NODE_ENV === "production") {
-    throw new UploadError("Uploads are not set up yet. Ask the admin to add CLOUDINARY_URL.");
-  }
-  const dir = path.join(process.cwd(), "public", "uploads", folder);
-  await mkdir(dir, { recursive: true });
-  await writeFile(path.join(dir, name), bytes);
-  return `/uploads/${folder}/${name}`;
+  refuseInProduction();
+  return saveLocally(bytes, folder, name);
 }
 
 async function uploadToCloudinary(
@@ -53,23 +93,29 @@ async function uploadToCloudinary(
   bytes: Uint8Array<ArrayBuffer>,
   type: string,
   folder: string,
+  options: { raw?: boolean; publicId?: string } = {},
 ): Promise<string> {
   const { username: apiKey, password: apiSecret, hostname: cloudName } = new URL(configUrl);
   const timestamp = Math.floor(Date.now() / 1000).toString();
   const cloudFolder = `campus-events/${folder}`;
+  const params: Record<string, string> = { folder: cloudFolder, timestamp };
+  if (options.publicId) params.public_id = options.publicId;
+
   // Cloudinary signs the sorted parameters followed by the API secret.
-  const signature = createHash("sha1")
-    .update(`folder=${cloudFolder}&timestamp=${timestamp}${apiSecret}`)
-    .digest("hex");
+  const toSign = Object.keys(params)
+    .sort()
+    .map((k) => `${k}=${params[k]}`)
+    .join("&");
+  const signature = createHash("sha1").update(`${toSign}${apiSecret}`).digest("hex");
 
   const form = new FormData();
   form.set("file", new Blob([bytes], { type }));
   form.set("api_key", apiKey);
-  form.set("timestamp", timestamp);
-  form.set("folder", cloudFolder);
+  for (const [k, v] of Object.entries(params)) form.set(k, v);
   form.set("signature", signature);
 
-  const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+  const kind = options.raw ? "raw" : "image";
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/${kind}/upload`, {
     method: "POST",
     body: form,
   });

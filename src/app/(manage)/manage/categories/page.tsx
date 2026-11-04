@@ -24,7 +24,7 @@ export const metadata: Metadata = { title: "Categories" };
 
 export default function CategoriesPage({ searchParams }: PageProps<"/manage/categories">) {
   return (
-    <div className="mx-auto grid max-w-6xl gap-6 px-4 py-10">
+    <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)] gap-6 px-4 py-10">
       <AdminHeader
         current="/manage/categories"
         title="Categories"
@@ -48,7 +48,7 @@ async function CategoriesContent({
     <>
       {(saved || deleted) && <SavedNotice text={deleted ? "Deleted." : "Saved."} />}
 
-      <div className="grid items-start gap-6 lg:grid-cols-[1fr_24rem]">
+      <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]">
         <div className="rounded-xl border">
           <Table>
             <TableHeader>

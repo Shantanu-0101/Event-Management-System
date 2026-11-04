@@ -18,6 +18,17 @@ describe("allowedRoles", () => {
 
   it("lets coordinators into the rest of /manage", () => {
     expect(allowedRoles("/manage/check-in")).toEqual(["COORDINATOR", "ADMIN"]);
+    expect(allowedRoles("/manage/events")).toEqual(["COORDINATOR", "ADMIN"]);
+    expect(allowedRoles("/manage/events/abc")).toEqual(["COORDINATOR", "ADMIN"]);
+  });
+
+  it("keeps creating events for admins only", () => {
+    expect(allowedRoles("/manage/events/new")).toEqual(["ADMIN"]);
+  });
+
+  it("leaves event pages public", () => {
+    expect(allowedRoles("/events/annual-hackathon")).toBeNull();
+    expect(allowedRoles("/events/annual-hackathon/calendar.ics")).toBeNull();
   });
 
   it("does not match a prefix inside a longer word", () => {

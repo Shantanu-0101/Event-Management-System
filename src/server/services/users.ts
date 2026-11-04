@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import type { Prisma } from "@/generated/prisma/client";
+import type { Prisma, User } from "@/generated/prisma/client";
 import type { Role } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
 import { appUrl, linkEmail, sendEmail } from "@/lib/email";
@@ -189,13 +189,34 @@ export async function listUsers(opts: { q?: string; role?: Role; page: number })
   return { total, users, pages: Math.max(1, Math.ceil(total / USERS_PAGE_SIZE)) };
 }
 
+// Arbitrary fixed key for pg_advisory_xact_lock.
+const ADMIN_CHANGES_LOCK = 727001;
+
+/**
+ * Runs a role or activation change as one step: the lock makes these changes
+ * queue up, so two admins removing each other at the same moment can't both
+ * pass the last-admin check. The actor is re-checked for the same reason.
+ */
+async function adminChange(
+  actorId: string,
+  userId: string,
+  change: (tx: Prisma.TransactionClient, target: User) => Promise<void>,
+) {
+  await prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(${ADMIN_CHANGES_LOCK})`;
+    const actor = await tx.user.findUnique({ where: { id: actorId } });
+    if (actor?.role !== "ADMIN" || !actor.isActive) {
+      throw new UserRuleError("You no longer have admin access.");
+    }
+    await change(tx, await tx.user.findUniqueOrThrow({ where: { id: userId } }));
+  });
+}
+
 /** Stops admins from locking everyone out by removing the last admin. */
-async function assertNotLastAdmin(userId: string) {
-  const target = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
-  if (target.role !== "ADMIN" || !target.isActive) return target;
-  const admins = await prisma.user.count({ where: { role: "ADMIN", isActive: true } });
+async function assertNotLastAdmin(tx: Prisma.TransactionClient, target: User) {
+  if (target.role !== "ADMIN" || !target.isActive) return;
+  const admins = await tx.user.count({ where: { role: "ADMIN", isActive: true } });
   if (admins <= 1) throw new UserRuleError("There must be at least one active admin.");
-  return target;
 }
 
 // Both changes bump sessionVersion, so the user is signed out and their next
@@ -203,16 +224,16 @@ async function assertNotLastAdmin(userId: string) {
 
 export async function changeRole(actorId: string, userId: string, role: Role) {
   if (actorId === userId) throw new UserRuleError("You can't change your own role.");
-  const target = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
-  if (target.role === role) return;
-  if (role !== "ADMIN") await assertNotLastAdmin(userId);
 
-  await prisma.$transaction([
-    prisma.user.update({
+  await adminChange(actorId, userId, async (tx, target) => {
+    if (target.role === role) return;
+    if (role !== "ADMIN") await assertNotLastAdmin(tx, target);
+
+    await tx.user.update({
       where: { id: userId },
       data: { role, sessionVersion: { increment: 1 } },
-    }),
-    prisma.auditLog.create({
+    });
+    await tx.auditLog.create({
       data: {
         actorId,
         action: "user.role_changed",
@@ -220,26 +241,28 @@ export async function changeRole(actorId: string, userId: string, role: Role) {
         entityId: userId,
         meta: { from: target.role, to: role },
       },
-    }),
-  ]);
+    });
+  });
 }
 
 export async function setActive(actorId: string, userId: string, isActive: boolean) {
   if (actorId === userId) throw new UserRuleError("You can't deactivate your own account.");
-  if (!isActive) await assertNotLastAdmin(userId);
 
-  await prisma.$transaction([
-    prisma.user.update({
+  await adminChange(actorId, userId, async (tx, target) => {
+    if (target.isActive === isActive) return;
+    if (!isActive) await assertNotLastAdmin(tx, target);
+
+    await tx.user.update({
       where: { id: userId },
       data: { isActive, sessionVersion: { increment: 1 } },
-    }),
-    prisma.auditLog.create({
+    });
+    await tx.auditLog.create({
       data: {
         actorId,
         action: isActive ? "user.activated" : "user.deactivated",
         entity: "user",
         entityId: userId,
       },
-    }),
-  ]);
+    });
+  });
 }

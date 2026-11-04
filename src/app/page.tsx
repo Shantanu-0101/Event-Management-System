@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { connection } from "next/server";
 import { ArrowRightIcon } from "lucide-react";
 import { getActiveCategories } from "@/server/services/categories";
@@ -57,13 +58,21 @@ async function CategoryGrid() {
   return (
     <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {categories.map((c) => (
-        <li key={c.id}>
-          <Card className="h-full">
+        <li key={c.id} className="relative">
+          <Card className="h-full transition-shadow focus-within:ring-2 focus-within:ring-ring hover:shadow-md">
             <CardHeader>
               <div className="mb-2 flex size-10 items-center justify-center rounded-lg bg-muted">
                 <CategoryIcon name={c.icon} className="size-5" />
               </div>
-              <CardTitle>{c.name}</CardTitle>
+              <CardTitle>
+                {/* The whole card is clickable through this one link. */}
+                <Link
+                  href={`/events?category=${c.slug}`}
+                  className="outline-none after:absolute after:inset-0"
+                >
+                  {c.name}
+                </Link>
+              </CardTitle>
               {c.description && <CardDescription>{c.description}</CardDescription>}
               <div className="pt-2">
                 <Badge variant="secondary">
