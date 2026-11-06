@@ -15,7 +15,13 @@ import {
   UsersIcon,
   type LucideIcon,
 } from "lucide-react";
-import { effectiveStatus, eligibilityChoice, registrationNote, seatsLeft } from "@/lib/events";
+import {
+  effectiveStatus,
+  eligibilityChoice,
+  registrationNote,
+  seatsLeft,
+  seatsTaken,
+} from "@/lib/events";
 import { richTextToPlain } from "@/lib/rich-text";
 import { formatRange } from "@/lib/time";
 import { yearLabel } from "@/lib/years";
@@ -28,6 +34,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { RegistrationPanel } from "./registration-panel";
 
 export async function generateMetadata({ params }: PageProps<"/events/[slug]">): Promise<Metadata> {
   await connection();
@@ -68,7 +75,7 @@ async function EventContent({ params }: Pick<PageProps<"/events/[slug]">, "param
 
   const now = new Date();
   const status = effectiveStatus(event, now);
-  const left = seatsLeft(event.capacity, event._count.registrations);
+  const left = seatsLeft(event.capacity, seatsTaken(event));
   const { departmentIds, years } = eligibilityChoice(event.eligibility);
   const departmentCodes = departmentIds.map(
     (id) => event.eligibility.find((r) => r.departmentId === id)?.department?.code ?? "",
@@ -155,6 +162,8 @@ async function EventContent({ params }: Pick<PageProps<"/events/[slug]">, "param
           </span>
         </Fact>
       </dl>
+
+      <RegistrationPanel event={event} user={user} seatsLeft={left} now={now} />
 
       <div className="flex flex-wrap gap-2">
         {showsCalendar && (

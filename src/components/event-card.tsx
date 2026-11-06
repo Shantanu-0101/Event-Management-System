@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { CalendarIcon, MapPinIcon } from "lucide-react";
-import { effectiveStatus, seatsLeft } from "@/lib/events";
+import { effectiveStatus, seatsLeft, seatsTaken } from "@/lib/events";
 import { formatDateTime } from "@/lib/time";
 import type { eventCardSelect } from "@/server/services/events";
 import type { Prisma } from "@/generated/prisma/client";
@@ -22,7 +22,7 @@ export function EventCard({
   priority?: boolean;
 }) {
   const status = effectiveStatus(event, now);
-  const left = seatsLeft(event.capacity, event._count.registrations);
+  const left = seatsLeft(event.capacity, seatsTaken(event));
 
   return (
     <Card className="h-full gap-0 overflow-hidden py-0 transition-shadow focus-within:ring-2 focus-within:ring-ring hover:shadow-md">

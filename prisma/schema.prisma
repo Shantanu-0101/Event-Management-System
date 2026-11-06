@@ -255,7 +255,9 @@ model TeamMember {
   @@map("team_members")
 }
 
-// Seats taken = CONFIRMED rows for the event.
+// Every team member has their own row. Seats taken = CONFIRMED rows for the
+// event, except when one team takes one seat: then it's teams with CONFIRMED
+// rows (seatsTaken in lib/events.ts). A waitlisted team's rows share a position.
 model Registration {
   id               String             @id @default(cuid())
   eventId          String             @map("event_id")
@@ -279,6 +281,8 @@ model Registration {
 
   @@unique([eventId, userId])
   @@index([eventId, status])
+  @@index([userId, status])
+  @@index([teamId])
   @@map("registrations")
 }
 

@@ -2,7 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { forbidden, redirect } from "next/navigation";
+import { after } from "next/server";
 import { ADMIN_ONLY, STAFF_ROLES } from "@/lib/access";
+import { sendEmails } from "@/lib/email";
 import { eventFormValues, eventSchema } from "@/lib/event-schema";
 import type { StatusAction } from "@/lib/events";
 import { failed, invalid, type FormState } from "@/lib/form-state";
@@ -37,8 +39,12 @@ export async function saveEventAction(_prev: FormState, formData: FormData): Pro
 
   let savedId = id;
   try {
-    if (id) await updateEvent(me, id, parsed.data, new Date());
-    else savedId = (await createEvent(me, parsed.data)).id;
+    if (id) {
+      const emails = await updateEvent(me, id, parsed.data, new Date());
+      if (emails.length > 0) after(() => sendEmails(emails));
+    } else {
+      savedId = (await createEvent(me, parsed.data)).id;
+    }
   } catch (e) {
     if (e instanceof EventRuleError) return failed(e.message, formData, e.field);
     throw e;
@@ -78,7 +84,8 @@ export async function changeEventStatusAction(
   if (!ACTIONS.includes(action)) return failed("Choose a status change.");
 
   try {
-    await changeEventStatus(me, id, action, new Date());
+    const emails = await changeEventStatus(me, id, action, new Date());
+    if (emails.length > 0) after(() => sendEmails(emails));
   } catch (e) {
     if (e instanceof EventRuleError) return failed(e.message);
     throw e;

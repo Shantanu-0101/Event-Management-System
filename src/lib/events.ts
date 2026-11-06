@@ -1,4 +1,4 @@
-import type { EventStatus, Role } from "@/generated/prisma/enums";
+import type { EventStatus, Participation, Role, SeatPer } from "@/generated/prisma/enums";
 import { formatDateTime } from "@/lib/time";
 
 // Event rules that need no database, so they can be unit tested and shared by
@@ -13,7 +13,7 @@ export const STATUS_LABELS: Record<EventStatus, string> = {
   CANCELLED: "Cancelled",
 };
 
-type Schedule = {
+export type Schedule = {
   status: EventStatus;
   regOpensAt: Date;
   regClosesAt: Date;
@@ -81,7 +81,7 @@ export function statusActions(event: Schedule, role: Role, now: Date): StatusAct
   }
 }
 
-type EligibilityRow = { departmentId: string | null; year: number | null };
+export type EligibilityRow = { departmentId: string | null; year: number | null };
 
 /**
  * The rows to store for the ticked departments and years. An empty side means
@@ -114,6 +114,18 @@ export function isEligible(
       (r.departmentId === null || r.departmentId === student.departmentId) &&
       (r.year === null || r.year === student.year),
   );
+}
+
+type SeatRule = { participation: Participation; seatPer: SeatPer };
+
+/** True when a whole team shares one seat, rather than each person taking one. */
+export function teamSharesSeat(event: SeatRule) {
+  return event.participation === "TEAM" && event.seatPer === "TEAM";
+}
+
+/** Seats in use, from counts of confirmed registrations and of confirmed teams. */
+export function seatsTaken(event: SeatRule & { _count: { registrations: number; teams: number } }) {
+  return teamSharesSeat(event) ? event._count.teams : event._count.registrations;
 }
 
 /** Seats still free, or null when the event has no limit. Never below zero. */

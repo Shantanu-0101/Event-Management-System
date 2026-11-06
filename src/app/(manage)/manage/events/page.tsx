@@ -5,7 +5,7 @@ import Link from "next/link";
 import { PlusIcon, SearchIcon } from "lucide-react";
 import { z } from "zod";
 import { STAFF_ROLES } from "@/lib/access";
-import { effectiveStatus, seatsLeft, STATUS_LABELS } from "@/lib/events";
+import { effectiveStatus, seatsLeft, seatsTaken, STATUS_LABELS } from "@/lib/events";
 import { formatDateTime } from "@/lib/time";
 import { requireRole } from "@/server/session";
 import { listManagedEvents } from "@/server/services/events";
@@ -155,7 +155,7 @@ async function ManageEventsContent({
             <TableBody>
               {events.map((e) => {
                 const shown = effectiveStatus(e, now);
-                const left = seatsLeft(e.capacity, e._count.registrations);
+                const left = seatsLeft(e.capacity, seatsTaken(e));
                 return (
                   <TableRow key={e.id}>
                     <TableCell className="max-w-44 whitespace-normal sm:max-w-80">

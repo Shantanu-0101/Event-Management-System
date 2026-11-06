@@ -40,7 +40,7 @@ const COPY: Record<
   cancel: {
     button: "Cancel event",
     title: "Cancel this event?",
-    body: "It stays visible, marked as cancelled. This can't be undone, and the event can't be edited afterwards.",
+    body: "Everyone registered gets an email. The event stays visible, marked as cancelled. This can't be undone, and the event can't be edited afterwards.",
     destructive: true,
   },
 };
