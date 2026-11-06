@@ -7,11 +7,19 @@ import {
   eligibilityRows,
   isEditable,
   publishProblem,
+  seatsTaken,
   statusActions,
   type StatusAction,
 } from "@/lib/events";
 import { prisma } from "@/lib/prisma";
+import { eventEditProblem } from "@/lib/registrations";
 import { slugify } from "@/lib/schemas";
+import {
+  eventCancelledEmails,
+  lockEvent,
+  LOCKED_TRANSACTION,
+  promoteWaitlist,
+} from "@/server/services/registrations";
 import type { CurrentUser } from "@/server/session";
 
 export const EVENTS_PAGE_SIZE = 20;
@@ -26,9 +34,10 @@ export class EventRuleError extends Error {
   }
 }
 
-// Seats taken = CONFIRMED rows for the event (see the Registration model).
+// The two counts seatsTaken() in lib/events.ts chooses between.
 const confirmedSeats = {
   registrations: { where: { status: "CONFIRMED" } },
+  teams: { where: { registrations: { some: { status: "CONFIRMED" } } } },
 } satisfies Prisma.EventCountOutputTypeSelect;
 
 // ─── Public pages ───────────────────────────────────────────────────────────
@@ -48,6 +57,7 @@ export const eventCardSelect = {
   capacity: true,
   status: true,
   participation: true,
+  seatPer: true,
   category: { select: { name: true, icon: true } },
   venue: { select: { name: true } },
   _count: { select: confirmedSeats },
@@ -352,6 +362,7 @@ export async function createEvent(actor: Pick<CurrentUser, "id">, data: EventInp
 /**
  * Saves changes. The web address stays the same, so shared links keep working.
  * Assigning coordinators is the admin's job, so a coordinator's save leaves them.
+ * Returns the emails to send when more seats moved people off the waitlist.
  */
 export async function updateEvent(
   actor: Pick<CurrentUser, "id" | "role">,
@@ -369,7 +380,33 @@ export async function updateEvent(
   const isAdmin = actor.role === "ADMIN";
   await assertReferencesExist(data, isAdmin);
 
-  await prisma.$transaction(async (tx) => {
+  return prisma.$transaction(async (tx) => {
+    // Held while checking, so nobody can take a seat between the check and the save.
+    const locked = await lockEvent(tx, id);
+    if (!locked) throw new EventRuleError("This event no longer exists.");
+
+    const [registrations, teams, confirmedTeams] = await Promise.all([
+      tx.registration.groupBy({
+        by: ["status"],
+        where: { eventId: id, status: { in: ["CONFIRMED", "WAITLISTED"] } },
+        _count: { _all: true },
+      }),
+      tx.team.count({ where: { eventId: id } }),
+      tx.team.count({
+        where: { eventId: id, registrations: { some: { status: "CONFIRMED" } } },
+      }),
+    ]);
+    const confirmed = registrations.find((r) => r.status === "CONFIRMED")?._count._all ?? 0;
+    const problem = eventEditProblem(locked, data, {
+      registrations: registrations.reduce((sum, r) => sum + r._count._all, 0),
+      teams,
+      seatsTaken: seatsTaken({
+        ...locked,
+        _count: { registrations: confirmed, teams: confirmedTeams },
+      }),
+    });
+    if (problem) throw new EventRuleError(problem.message, problem.field);
+
     await tx.event.update({ where: { id }, data: eventFields(data) });
 
     await tx.eventEligibility.deleteMany({ where: { eventId: id } });
@@ -390,7 +427,10 @@ export async function updateEvent(
     await tx.auditLog.create({
       data: { actorId: actor.id, action: "event.updated", entity: "event", entityId: id },
     });
-  });
+
+    // A raised or removed limit makes room for the waitlist.
+    return promoteWaitlist(tx, { ...locked, capacity: data.capacity });
+  }, LOCKED_TRANSACTION);
 }
 
 /** A new draft with the same details, for next year's edition. Dates are kept for editing. */
@@ -437,7 +477,7 @@ export async function duplicateEvent(actor: Pick<CurrentUser, "id">, id: string)
 /**
  * Publish, close, reopen or cancel. The update only applies if the saved status
  * is still the one the rules were checked against, so two people clicking at
- * once can't both succeed.
+ * once can't both succeed. Cancelling returns the emails telling people about it.
  */
 export async function changeEventStatus(
   actor: Pick<CurrentUser, "id" | "role">,
@@ -455,7 +495,7 @@ export async function changeEventStatus(
   }
 
   const to = ACTION_TARGET[action];
-  await prisma.$transaction(async (tx) => {
+  return prisma.$transaction(async (tx) => {
     const { count } = await tx.event.updateMany({
       where: { id, status: event.status },
       data: { status: to },
@@ -471,6 +511,8 @@ export async function changeEventStatus(
         meta: { from: effectiveStatus(event, now), to },
       },
     });
+
+    return to === "CANCELLED" ? eventCancelledEmails(tx, event) : [];
   });
 }
 

@@ -124,6 +124,14 @@ export const venueSchema = z.object({
   capacity: optional(z.coerce.number().int().min(1, "Must be at least 1.").max(100000)),
 });
 
+export const teamNameSchema = z.object({
+  name: trimmed(60).min(2, "Enter a team name."),
+});
+
+export const teamInviteSchema = z.object({
+  member: trimmed(254).min(3, "Enter their roll number or email."),
+});
+
 /** Turns a slug-like id from a name: "Paper Presentation" → "paper-presentation". */
 export function slugify(name: string) {
   return name

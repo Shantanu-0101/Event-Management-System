@@ -3,7 +3,7 @@
 // console instead, so links can be clicked from the terminal.
 // Phase 5 replaces the plain HTML here with React Email templates.
 
-type Email = { to: string; subject: string; text: string; html: string };
+export type Email = { to: string; subject: string; text: string; html: string };
 
 export async function sendEmail(email: Email): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
@@ -32,6 +32,41 @@ export async function sendEmail(email: Email): Promise<void> {
   });
   if (!res.ok) {
     console.error(`Resend refused "${email.subject}": ${res.status} ${await res.text()}`);
+  }
+}
+
+const RESEND_BATCH_LIMIT = 100;
+
+/**
+ * Sends many emails, for example to everyone on a cancelled event. Resend's
+ * batch endpoint keeps this within its request rate limit. Never throws: the
+ * change that caused the emails is already saved, so a mail problem is only logged.
+ */
+export async function sendEmails(emails: Email[]): Promise<void> {
+  const apiKey = process.env.RESEND_API_KEY;
+  try {
+    if (!apiKey) {
+      for (const email of emails) await sendEmail(email);
+      return;
+    }
+    for (let i = 0; i < emails.length; i += RESEND_BATCH_LIMIT) {
+      const res = await fetch("https://api.resend.com/emails/batch", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify(
+          emails.slice(i, i + RESEND_BATCH_LIMIT).map((email) => ({
+            from: process.env.EMAIL_FROM ?? "Campus Events <onboarding@resend.dev>",
+            to: [email.to],
+            subject: email.subject,
+            text: email.text,
+            html: email.html,
+          })),
+        ),
+      });
+      if (!res.ok) console.error(`Resend refused a batch: ${res.status} ${await res.text()}`);
+    }
+  } catch (e) {
+    console.error("Could not send emails:", e);
   }
 }
 

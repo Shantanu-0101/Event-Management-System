@@ -3,6 +3,7 @@ import type { Role } from "@/generated/prisma/enums";
 export const ALL_ROLES: readonly Role[] = ["STUDENT", "COORDINATOR", "ADMIN"];
 export const STAFF_ROLES: readonly Role[] = ["COORDINATOR", "ADMIN"];
 export const ADMIN_ONLY: readonly Role[] = ["ADMIN"];
+export const STUDENT_ONLY: readonly Role[] = ["STUDENT"];
 
 // Who may open which pages (spec section 3). The first matching prefix wins,
 // so list longer prefixes first. Paths not listed are public.
