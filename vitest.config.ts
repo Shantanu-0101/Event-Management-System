@@ -24,7 +24,7 @@ export default defineConfig({
           include: ["tests/integration/**/*.test.ts"],
           environment: "node",
           globalSetup: ["tests/integration/global-setup.ts"],
-          env: { DATABASE_URL: testDatabaseUrl() },
+          env: { DATABASE_URL: testDatabaseUrl(), AUTH_SECRET: "integration-tests-only" },
           testTimeout: 60_000,
           hookTimeout: 60_000,
           fileParallelism: false,

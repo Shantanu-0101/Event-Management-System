@@ -3,8 +3,6 @@ import type { Role } from "@/generated/prisma/enums";
 export type NavItem = { href: string; label: string };
 
 // Menu per role (spec section 3). Visitors are people who are not logged in.
-// Most of these pages arrive in later phases; the menu is defined once here so
-// the header, and later the route guards, agree on who sees what.
 const navByRole: Record<Role | "VISITOR", NavItem[]> = {
   VISITOR: [
     { href: "/", label: "Home" },
@@ -23,6 +21,7 @@ const navByRole: Record<Role | "VISITOR", NavItem[]> = {
   ADMIN: [
     { href: "/events", label: "Events" },
     { href: "/manage/events", label: "Manage events" },
+    { href: "/manage/check-in", label: "Check-in" },
     { href: "/manage/users", label: "Users" },
     { href: "/manage/reports", label: "Reports" },
   ],

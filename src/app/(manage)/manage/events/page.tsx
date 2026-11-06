@@ -181,6 +181,13 @@ async function ManageEventsContent({
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex flex-col items-end gap-1 sm:flex-row sm:justify-end">
+                        <ButtonLink
+                          href={`/manage/events/${e.id}/registrations`}
+                          variant="ghost"
+                          size="sm"
+                        >
+                          Registrations
+                        </ButtonLink>
                         <ButtonLink href={`/manage/events/${e.id}`} variant="ghost" size="sm">
                           Edit
                         </ButtonLink>

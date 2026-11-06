@@ -25,6 +25,7 @@ import {
   windowProblem,
   type Applicant,
 } from "@/lib/registrations";
+import { newTicketCode } from "@/lib/tickets";
 
 // How a seat can never be sold twice: every change that touches seats first
 // locks the event's row, so changes to one event happen one at a time and each
@@ -156,11 +157,23 @@ async function nextPlace(tx: Tx, event: LockedEvent, seats: number) {
   return { status: "WAITLISTED" as const, waitlistPosition: (_max.waitlistPosition ?? 0) + 1 };
 }
 
+/** What to save for one person taking a place. Everyone confirmed has their own ticket. */
+function withTicket(place: { status: RegistrationStatus; waitlistPosition: number | null }) {
+  return { ...place, ticketCode: place.status === "CONFIRMED" ? newTicketCode() : null };
+}
+
 /** Ends registrations. A cancelled row keeps nothing that could still get someone in. */
 function release(tx: Tx, where: Prisma.RegistrationWhereInput) {
   return tx.registration.updateMany({
     where: { ...where, status: { in: ACTIVE } },
-    data: { status: "CANCELLED", waitlistPosition: null, ticketCode: null, teamId: null },
+    data: {
+      status: "CANCELLED",
+      waitlistPosition: null,
+      ticketCode: null,
+      teamId: null,
+      checkedInAt: null,
+      checkedInById: null,
+    },
   });
 }
 
@@ -172,6 +185,7 @@ export async function promoteWaitlist(tx: Tx, event: LockedEvent): Promise<Email
   const waiting = await tx.registration.findMany({
     where: { eventId: event.id, status: "WAITLISTED" },
     select: {
+      id: true,
       waitlistPosition: true,
       user: { select: { name: true, email: true } },
       team: { select: { name: true } },
@@ -186,14 +200,16 @@ export async function promoteWaitlist(tx: Tx, event: LockedEvent): Promise<Email
   const promoted = positionsToPromote(groups, await freeSeats(tx, event));
   if (promoted.length === 0) return [];
 
-  await tx.registration.updateMany({
-    where: { eventId: event.id, status: "WAITLISTED", waitlistPosition: { in: promoted } },
-    data: { status: "CONFIRMED", waitlistPosition: null },
-  });
+  const confirmed = waiting.filter((r) => promoted.includes(r.waitlistPosition ?? 0));
+  // One update each, because every person gets a different ticket.
+  for (const { id } of confirmed) {
+    await tx.registration.update({
+      where: { id },
+      data: { status: "CONFIRMED", waitlistPosition: null, ticketCode: newTicketCode() },
+    });
+  }
 
-  return waiting
-    .filter((r) => promoted.includes(r.waitlistPosition ?? 0))
-    .map((r) => promotedEmail(r.user, event, r.team?.name));
+  return confirmed.map((r) => promotedEmail(r.user, event, r.team?.name));
 }
 
 // ─── Solo registration ──────────────────────────────────────────────────────
@@ -216,11 +232,12 @@ export async function registerForEvent(student: Student, eventId: string, now: D
     }
 
     const place = await nextPlace(tx, event, 1);
+    const saved = withTicket(place);
     // Someone who cancelled has a row already; it's reused, at the back of the queue.
     const registration = await tx.registration.upsert({
       where,
-      create: { eventId, userId: student.id, ...place },
-      update: place,
+      create: { eventId, userId: student.id, ...saved },
+      update: saved,
     });
     await audit(tx, student.id, "registration.created", "registration", registration.id, {
       eventId,
@@ -305,10 +322,11 @@ async function syncTeamRegistration(
   const registered = new Set(current.map((r) => r.userId));
   const joining = accepted.filter((m) => !registered.has(m.userId));
   for (const { userId } of joining) {
+    const saved = withTicket(place);
     await tx.registration.upsert({
       where: { eventId_userId: { eventId: event.id, userId } },
-      create: { eventId: event.id, userId, teamId: team.id, ...place },
-      update: { teamId: team.id, ...place },
+      create: { eventId: event.id, userId, teamId: team.id, ...saved },
+      update: { teamId: team.id, ...saved },
     });
   }
   return joining.map((m) =>
@@ -594,7 +612,7 @@ export async function getRegistrationView(eventId: string, userId: string) {
   const [registration, team, invites] = await Promise.all([
     prisma.registration.findUnique({
       where: { eventId_userId: { eventId, userId } },
-      select: { status: true, waitlistPosition: true },
+      select: { id: true, status: true, waitlistPosition: true },
     }),
     prisma.team.findFirst({
       where: { eventId, members: { some: { userId, status: "ACCEPTED" } } },
@@ -653,6 +671,7 @@ export async function getMyEvents(userId: string) {
         id: true,
         status: true,
         waitlistPosition: true,
+        checkedInAt: true,
         event: { select: myEventSelect },
         team: { select: { name: true } },
       },
@@ -693,4 +712,42 @@ export async function getMyEvents(userId: string) {
     })),
   );
   return { registrations: withRanks, invites: invites.map((i) => i.team), teams };
+}
+
+const ticketSelect = {
+  id: true,
+  status: true,
+  ticketCode: true,
+  checkedInAt: true,
+  team: { select: { name: true } },
+  user: { select: { name: true, rollNo: true } },
+  event: {
+    select: {
+      title: true,
+      slug: true,
+      subEvent: true,
+      status: true,
+      startsAt: true,
+      endsAt: true,
+      regOpensAt: true,
+      regClosesAt: true,
+      venue: { select: { name: true, building: true } },
+    },
+  },
+} satisfies Prisma.RegistrationSelect;
+
+/**
+ * One student's own ticket, or null if this registration isn't theirs. People
+ * confirmed before tickets existed get theirs here, the first time they ask for it.
+ */
+export async function getTicket(registrationId: string, userId: string) {
+  const where = { id: registrationId, userId };
+  const ticket = await prisma.registration.findFirst({ where, select: ticketSelect });
+  if (ticket?.status !== "CONFIRMED" || ticket.ticketCode) return ticket;
+
+  await prisma.registration.updateMany({
+    where: { ...where, status: "CONFIRMED", ticketCode: null },
+    data: { ticketCode: newTicketCode() },
+  });
+  return prisma.registration.findFirst({ where, select: ticketSelect });
 }

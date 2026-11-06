@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { QrCodeIcon } from "lucide-react";
 import { effectiveStatus } from "@/lib/events";
 import { groupMyEvents, membersNeeded, windowProblem } from "@/lib/registrations";
 import { formatDateTime } from "@/lib/time";
@@ -98,7 +99,14 @@ async function MyEventsContent() {
               key={r.id}
               event={r.event}
               note={r.team ? `Team ${r.team.name}` : undefined}
-              badge={<Badge>Registered</Badge>}
+              badge={<Badge>{r.checkedInAt ? "Checked in" : "Registered"}</Badge>}
+              actions={
+                <div>
+                  <ButtonLink href={`/my-events/${r.id}/ticket`} size="sm">
+                    <QrCodeIcon data-icon="inline-start" /> Show ticket
+                  </ButtonLink>
+                </div>
+              }
             />
           ))}
         </Section>
@@ -154,7 +162,9 @@ async function MyEventsContent() {
                       ? "Event cancelled"
                       : r.status === "WAITLISTED"
                         ? "Didn't get a seat"
-                        : "Registered"}
+                        : r.checkedInAt
+                          ? "Attended"
+                          : "Registered"}
                   </Badge>
                 }
               />

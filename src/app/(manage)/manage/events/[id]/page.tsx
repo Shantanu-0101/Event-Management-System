@@ -79,6 +79,26 @@ async function EditEventContent({
               {status === "DRAFT" ? "Preview page" : "View page"}{" "}
               <ExternalLinkIcon data-icon="inline-end" />
             </ButtonLink>
+            {status !== "DRAFT" && (
+              <>
+                <ButtonLink
+                  href={`/manage/events/${event.id}/registrations`}
+                  variant="link"
+                  size="sm"
+                  className="h-auto px-0"
+                >
+                  Registrations
+                </ButtonLink>
+                <ButtonLink
+                  href={`/manage/check-in/${event.id}`}
+                  variant="link"
+                  size="sm"
+                  className="h-auto px-0"
+                >
+                  Check-in
+                </ButtonLink>
+              </>
+            )}
           </div>
           {problem && (
             <p className="text-sm text-muted-foreground">Can&apos;t publish: {problem}</p>
