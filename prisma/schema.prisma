@@ -177,6 +177,10 @@ model Event {
   seatPer       SeatPer       @default(TEAM) @map("seat_per")
   status        EventStatus   @default(DRAFT)
   createdById   String        @map("created_by")
+  // Background for this event's certificates; null uses the built-in design.
+  certificateTemplateUrl String?   @map("certificate_template_url")
+  // Set when the reminder goes out, and cleared if the start time moves.
+  reminderSentAt         DateTime? @map("reminder_sent_at")
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @updatedAt @map("updated_at")
 
@@ -300,10 +304,12 @@ model Result {
   registration Registration? @relation(fields: [registrationId], references: [id])
   team         Team?         @relation(fields: [teamId], references: [id])
 
-  @@index([eventId])
+  @@unique([eventId, position])
   @@map("results")
 }
 
+// The row is what makes a certificate real. Its PDF is drawn when someone asks
+// for it (lib/certificate-pdf.ts), so pdfUrl stays empty and no file storage is needed.
 model Certificate {
   id             String          @id @default(cuid())
   registrationId String          @map("registration_id")
@@ -362,4 +368,15 @@ model AuditLog {
 
   @@index([entity, entityId])
   @@map("audit_logs")
+}
+
+// One row per limit being counted, e.g. login attempts from one address. The key is
+// a hash, so the table holds no emails or IP addresses. See services/rate-limit.ts.
+model RateLimit {
+  key     String   @id
+  count   Int
+  resetAt DateTime @map("reset_at") @db.Timestamptz(3)
+
+  @@index([resetAt])
+  @@map("rate_limits")
 }

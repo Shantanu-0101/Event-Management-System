@@ -43,6 +43,14 @@ export function newTicketCode(secret = defaultSecret()) {
   return random + sign(random, secret);
 }
 
+/**
+ * A certificate's public code: 12 characters from the same easy-to-read alphabet. It
+ * needs no signature, because checking one always means looking it up.
+ */
+export function newVerifyCode() {
+  return encode(randomBytes(8), 12);
+}
+
 /** The code in its stored form if the signature checks out, otherwise null. */
 export function verifyTicketCode(input: string, secret = defaultSecret()): string | null {
   const code = normalizeTicketCode(input);

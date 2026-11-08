@@ -56,6 +56,19 @@ describe("ticket codes", () => {
     expect(looksLikeTicketCode("CS21B1042")).toBe(false);
   });
 
+  it("are told apart from a name that happens to have 16 usable letters", () => {
+    expect(looksLikeTicketCode("Onboarding Tester")).toBe(false);
+    expect(looksLikeTicketCode("Nikhil-Deshpande")).toBe(false);
+  });
+
+  it("are recognised however they're typed", () => {
+    const code = formatTicketCode(newTicketCode(SECRET));
+    expect(looksLikeTicketCode(code.toLowerCase())).toBe(true);
+    expect(looksLikeTicketCode(code.replaceAll("-", ""))).toBe(true);
+    expect(looksLikeTicketCode(code.replaceAll("-", " "))).toBe(true);
+    expect(looksLikeTicketCode(`  ${code} `)).toBe(true);
+  });
+
   it("group into fours for reading", () => {
     expect(formatTicketCode("ABCDEFGHJKMNPQRS")).toBe("ABCD-EFGH-JKMN-PQRS");
     expect(normalizeTicketCode("abcd-efgh-jkmn-pqrs")).toBe("ABCDEFGHJKMNPQRS");

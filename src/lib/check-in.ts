@@ -16,9 +16,16 @@ export function normalizeTicketCode(input: string) {
   return input.toUpperCase().replace(/[\s-]/g, "").replace(/O/g, "0").replace(/[IL]/g, "1");
 }
 
-/** Whether a search box entry is a ticket code rather than a name or roll number. */
+// A code's spaces or dashes only ever fall between its groups of four.
+const TICKET_GROUPS = /^\w{4}[\s-]?\w{4}[\s-]?\w{4}[\s-]?\w{4}$/;
+
+/**
+ * Whether a search box entry is a ticket code rather than a name or roll number. Length
+ * alone isn't enough: "Onboarding Tester" has 16 valid letters, so without the check on
+ * groups, searching for that person would report an invalid ticket.
+ */
 export function looksLikeTicketCode(input: string) {
-  return TICKET_SHAPE.test(normalizeTicketCode(input));
+  return TICKET_GROUPS.test(input.trim()) && TICKET_SHAPE.test(normalizeTicketCode(input));
 }
 
 /** "K7QM-3XRT-9PWA-HC2D": easier to read out and type than one long run. */

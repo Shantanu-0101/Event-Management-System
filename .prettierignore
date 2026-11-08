@@ -3,3 +3,6 @@ src/generated/
 prisma/migrations/
 package-lock.json
 AGENTS.md
+test-results/
+playwright-report/
+docs/diagrams/*.svg

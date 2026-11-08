@@ -12,9 +12,11 @@ import {
   type StatusAction,
 } from "@/lib/events";
 import { prisma } from "@/lib/prisma";
+import { eventChangedEmail } from "@/lib/registration-emails";
 import { eventEditProblem } from "@/lib/registrations";
 import { slugify } from "@/lib/schemas";
 import {
+  eventAudience,
   eventCancelledEmails,
   lockEvent,
   LOCKED_TRANSACTION,
@@ -362,7 +364,8 @@ export async function createEvent(actor: Pick<CurrentUser, "id">, data: EventInp
 /**
  * Saves changes. The web address stays the same, so shared links keep working.
  * Assigning coordinators is the admin's job, so a coordinator's save leaves them.
- * Returns the emails to send when more seats moved people off the waitlist.
+ * Returns the emails to send when more seats moved people off the waitlist, or
+ * when the time or place changed: someone could turn up at the wrong one otherwise.
  */
 export async function updateEvent(
   actor: Pick<CurrentUser, "id" | "role">,
@@ -407,7 +410,16 @@ export async function updateEvent(
     });
     if (problem) throw new EventRuleError(problem.message, problem.field);
 
-    await tx.event.update({ where: { id }, data: eventFields(data) });
+    const startMoved = data.startsAt.getTime() !== locked.startsAt.getTime();
+    const timeChanged = startMoved || data.endsAt.getTime() !== locked.endsAt.getTime();
+    const venueChanged = data.venueId !== locked.venueId;
+
+    const saved = await tx.event.update({
+      where: { id },
+      // A reminder about the old time doesn't count for the new one.
+      data: { ...eventFields(data), ...(startMoved ? { reminderSentAt: null } : {}) },
+      include: { venue: { select: { name: true, building: true } } },
+    });
 
     await tx.eventEligibility.deleteMany({ where: { eventId: id } });
     await tx.eventEligibility.createMany({
@@ -428,8 +440,14 @@ export async function updateEvent(
       data: { actorId: actor.id, action: "event.updated", entity: "event", entityId: id },
     });
 
+    const changed = [timeChanged && "time", venueChanged && "venue"].filter(Boolean).join(" and ");
+    const changeEmails = changed
+      ? (await eventAudience(tx, id)).map((person) => eventChangedEmail(person, saved, changed))
+      : [];
+
     // A raised or removed limit makes room for the waitlist.
-    return promoteWaitlist(tx, { ...locked, capacity: data.capacity });
+    const promoted = await promoteWaitlist(tx, { ...locked, ...saved });
+    return [...changeEmails, ...promoted];
   }, LOCKED_TRANSACTION);
 }
 
@@ -447,6 +465,7 @@ export async function duplicateEvent(actor: Pick<CurrentUser, "id">, id: string)
       const copy = await tx.event.create({
         data: {
           ...eventFields({ ...source, title }),
+          certificateTemplateUrl: source.certificateTemplateUrl,
           slug,
           createdById: actor.id,
           eligibility: {

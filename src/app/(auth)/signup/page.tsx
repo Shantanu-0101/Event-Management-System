@@ -14,7 +14,9 @@ export default function SignupPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-xl">Create your student account</CardTitle>
+        <CardTitle className="text-xl">
+          <h1>Create your student account</h1>
+        </CardTitle>
         <CardDescription>
           Your details are saved once, so event registration takes one tap.
         </CardDescription>

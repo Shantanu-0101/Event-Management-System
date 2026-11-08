@@ -10,11 +10,13 @@ import {
   CircleAlertIcon,
   EyeOffIcon,
   FileTextIcon,
+  TrophyIcon,
   MapPinIcon,
   TicketIcon,
   UsersIcon,
   type LucideIcon,
 } from "lucide-react";
+import { afterEventProblem } from "@/lib/certificates";
 import {
   effectiveStatus,
   eligibilityChoice,
@@ -25,8 +27,10 @@ import {
 import { richTextToPlain } from "@/lib/rich-text";
 import { formatRange } from "@/lib/time";
 import { yearLabel } from "@/lib/years";
-import { getCurrentUser } from "@/server/session";
+import { getCurrentUser, type CurrentUser } from "@/server/session";
 import { canManageEvent, getEventBySlug } from "@/server/services/events";
+import { getFeedbackState } from "@/server/services/feedback";
+import { getPublicResults } from "@/server/services/results";
 import { ButtonLink } from "@/components/button-link";
 import { CategoryIcon } from "@/components/category-icon";
 import { EventStatusBadge } from "@/components/event-status-badge";
@@ -34,6 +38,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { FeedbackForm } from "./feedback-form";
 import { RegistrationPanel } from "./registration-panel";
 
 export async function generateMetadata({ params }: PageProps<"/events/[slug]">): Promise<Metadata> {
@@ -163,7 +168,11 @@ async function EventContent({ params }: Pick<PageProps<"/events/[slug]">, "param
         </Fact>
       </dl>
 
+      {status === "COMPLETED" && <Results eventId={event.id} />}
+
       <RegistrationPanel event={event} user={user} seatsLeft={left} now={now} />
+
+      {user && !afterEventProblem(event, now) && <Feedback eventId={event.id} user={user} />}
 
       <div className="flex flex-wrap gap-2">
         {showsCalendar && (
@@ -232,6 +241,50 @@ async function EventContent({ params }: Pick<PageProps<"/events/[slug]">, "param
   );
 }
 
+async function Results({ eventId }: { eventId: string }) {
+  const results = await getPublicResults(eventId);
+  if (results.length === 0) return null;
+  return (
+    <section aria-labelledby="results-heading" className="grid gap-3 rounded-xl border p-4">
+      <h2 id="results-heading" className="flex items-center gap-2 font-semibold">
+        <TrophyIcon className="size-4 text-muted-foreground" aria-hidden /> Results
+      </h2>
+      <ol className="grid gap-2 text-sm">
+        {results.map(({ place, winner }) => (
+          <li key={place} className="flex gap-3">
+            <span className="w-8 shrink-0 font-medium">{place}</span>
+            <span className="min-w-0 break-words">{winner}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+/** Attendees rate a finished event once. Everyone else sees nothing here. */
+async function Feedback({ eventId, user }: { eventId: string; user: CurrentUser }) {
+  const { attended, feedback } = await getFeedbackState(eventId, user.id);
+  if (!attended) return null;
+  return (
+    <section
+      id="feedback"
+      aria-labelledby="feedback-heading"
+      className="grid scroll-mt-20 gap-3 rounded-xl border p-4"
+    >
+      <h2 id="feedback-heading" className="font-semibold">
+        How was it?
+      </h2>
+      {feedback ? (
+        <p className="text-sm text-muted-foreground">
+          Thanks. You rated this event {feedback.rating} out of 5.
+        </p>
+      ) : (
+        <FeedbackForm eventId={eventId} />
+      )}
+    </section>
+  );
+}
+
 function teamSize(min: number | null, max: number | null) {
   return min === max ? String(min) : `${min} to ${max}`;
 }
@@ -246,12 +299,12 @@ function Fact({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex gap-2.5">
-      <Icon className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
-      <div className="min-w-0 text-sm">
-        <dt className="text-xs text-muted-foreground">{label}</dt>
-        <dd>{children}</dd>
-      </div>
+    <div className="min-w-0 text-sm">
+      <dt className="flex items-center gap-2 text-xs text-muted-foreground">
+        <Icon className="size-4 shrink-0" aria-hidden />
+        {label}
+      </dt>
+      <dd className="pl-6">{children}</dd>
     </div>
   );
 }

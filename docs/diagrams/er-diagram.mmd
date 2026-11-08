@@ -1,0 +1,181 @@
+erDiagram
+  departments |o--o{ users : "departmentId"
+  users ||--o{ auth_tokens : "userId"
+  categories ||--o{ events : "categoryId"
+  venues |o--o{ events : "venueId"
+  users ||--o{ events : "createdById"
+  events ||--o{ event_eligibility : "eventId"
+  departments |o--o{ event_eligibility : "departmentId"
+  events ||--o{ event_coordinators : "eventId"
+  users ||--o{ event_coordinators : "userId"
+  events ||--o{ teams : "eventId"
+  users ||--o{ teams : "leaderId"
+  teams ||--o{ team_members : "teamId"
+  users ||--o{ team_members : "userId"
+  events ||--o{ registrations : "eventId"
+  users ||--o{ registrations : "userId"
+  teams |o--o{ registrations : "teamId"
+  users |o--o{ registrations : "checkedInById"
+  events ||--o{ results : "eventId"
+  registrations |o--o{ results : "registrationId"
+  teams |o--o{ results : "teamId"
+  registrations ||--o{ certificates : "registrationId"
+  events ||--o{ feedback : "eventId"
+  users ||--o{ feedback : "userId"
+  users ||--o{ notifications : "userId"
+  users |o--o{ audit_logs : "actorId"
+  users {
+    string id PK
+    string name
+    string email UK
+    string password_hash
+    string roll_no UK
+    string department_id FK
+    int year
+    string phone
+    string photo_url
+    enum role
+    datetime email_verified_at
+    boolean is_active
+    int session_version
+    datetime created_at
+    datetime updated_at
+  }
+  auth_tokens {
+    string id PK
+    string user_id FK
+    enum type
+    string token_hash UK
+    datetime expires_at
+    datetime used_at
+    datetime created_at
+  }
+  departments {
+    string id PK
+    string name UK
+    string code UK
+  }
+  categories {
+    string id PK
+    string name UK
+    string slug UK
+    string description
+    string icon
+    int sort_order
+    boolean is_active
+  }
+  venues {
+    string id PK
+    string name UK
+    string building
+    int capacity
+  }
+  events {
+    string id PK
+    string title
+    string slug UK
+    string category_id FK
+    string sub_event
+    string description
+    string poster_url
+    string rules_url
+    string venue_id FK
+    datetime starts_at
+    datetime ends_at
+    datetime reg_opens_at
+    datetime reg_closes_at
+    int capacity
+    enum participation
+    int team_min
+    int team_max
+    enum seat_per
+    enum status
+    string created_by FK
+    string certificate_template_url
+    datetime reminder_sent_at
+    datetime created_at
+    datetime updated_at
+  }
+  event_eligibility {
+    string id PK
+    string event_id FK
+    string department_id FK
+    int year
+  }
+  event_coordinators {
+    string event_id PK, FK
+    string user_id PK, FK
+  }
+  teams {
+    string id PK
+    string event_id FK
+    string name
+    string leader_id FK
+    string invite_code UK
+    datetime created_at
+  }
+  team_members {
+    string team_id PK, FK
+    string user_id PK, FK
+    enum status
+    datetime created_at
+  }
+  registrations {
+    string id PK
+    string event_id FK
+    string user_id FK
+    string team_id FK
+    enum status
+    int waitlist_position
+    string ticket_code UK
+    datetime checked_in_at
+    string checked_in_by FK
+    datetime created_at
+    datetime updated_at
+  }
+  results {
+    string id PK
+    string event_id FK
+    int position
+    string registration_id FK
+    string team_id FK
+  }
+  certificates {
+    string id PK
+    string registration_id FK
+    enum type
+    string verify_code UK
+    string pdf_url
+    datetime issued_at
+  }
+  feedback {
+    string id PK
+    string event_id FK
+    string user_id FK
+    int rating
+    string comment
+    datetime created_at
+  }
+  notifications {
+    string id PK
+    string user_id FK
+    string title
+    string body
+    string link
+    datetime read_at
+    datetime created_at
+  }
+  audit_logs {
+    string id PK
+    string actor_id FK
+    string action
+    string entity
+    string entity_id
+    json meta
+    datetime created_at
+  }
+  rate_limits {
+    string key PK
+    int count
+    datetime reset_at
+  }

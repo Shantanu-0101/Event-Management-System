@@ -1,7 +1,8 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { QrCodeIcon } from "lucide-react";
+import { DownloadIcon, QrCodeIcon } from "lucide-react";
+import { CERTIFICATE_LABELS } from "@/lib/certificates";
 import { effectiveStatus } from "@/lib/events";
 import { groupMyEvents, membersNeeded, windowProblem } from "@/lib/registrations";
 import { formatDateTime } from "@/lib/time";
@@ -11,6 +12,7 @@ import { requireUser } from "@/server/session";
 import { ButtonLink } from "@/components/button-link";
 import { ActionButton } from "@/components/registration-actions";
 import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const metadata: Metadata = { title: "My events" };
@@ -166,6 +168,32 @@ async function MyEventsContent() {
                           ? "Attended"
                           : "Registered"}
                   </Badge>
+                }
+                actions={
+                  !cancelled && r.checkedInAt ? (
+                    <div className="flex flex-wrap gap-2">
+                      {r.certificates.map((certificate) => (
+                        <a
+                          key={certificate.id}
+                          href={`/api/v1/certificates/${certificate.id}`}
+                          download
+                          className={buttonVariants({ size: "sm" })}
+                        >
+                          <DownloadIcon data-icon="inline-start" />
+                          {CERTIFICATE_LABELS[certificate.type]}
+                        </a>
+                      ))}
+                      {r.event.feedback.length === 0 && (
+                        <ButtonLink
+                          href={`/events/${r.event.slug}#feedback`}
+                          variant="outline"
+                          size="sm"
+                        >
+                          Give feedback
+                        </ButtonLink>
+                      )}
+                    </div>
+                  ) : undefined
                 }
               />
             );

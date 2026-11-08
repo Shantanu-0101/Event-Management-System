@@ -97,6 +97,22 @@ async function EditEventContent({
                 >
                   Check-in
                 </ButtonLink>
+                <ButtonLink
+                  href={`/manage/events/${event.id}/announcements`}
+                  variant="link"
+                  size="sm"
+                  className="h-auto px-0"
+                >
+                  Announcements
+                </ButtonLink>
+                <ButtonLink
+                  href={`/manage/events/${event.id}/results`}
+                  variant="link"
+                  size="sm"
+                  className="h-auto px-0"
+                >
+                  Results and certificates
+                </ButtonLink>
               </>
             )}
           </div>

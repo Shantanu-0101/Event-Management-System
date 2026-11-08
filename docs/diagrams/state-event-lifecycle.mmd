@@ -1,0 +1,14 @@
+stateDiagram-v2
+  direction LR
+  [*] --> Draft: Admin creates
+  Draft --> Published: Admin publishes
+  Draft --> Cancelled: Admin cancels
+  Published --> RegistrationClosed: Closing date passes, or staff close it
+  RegistrationClosed --> Published: Admin reopens, while the window runs
+  Published --> Cancelled: Admin cancels, everyone is emailed
+  RegistrationClosed --> Cancelled: Admin cancels, everyone is emailed
+  RegistrationClosed --> Ongoing: Start time passes
+  Published --> Ongoing: Start time passes
+  Ongoing --> Completed: End time passes
+  Completed --> [*]: Results, certificates and feedback
+  Cancelled --> [*]

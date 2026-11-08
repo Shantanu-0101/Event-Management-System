@@ -1,0 +1,31 @@
+sequenceDiagram
+  title Checking in at the door
+  actor S as Student
+  actor C as Coordinator
+  participant Q as Check-in page (phone camera)
+  participant API as POST /api/v1/events/:id/checkin
+  participant CI as Check-in service
+  participant D as PostgreSQL
+
+  S->>C: Shows QR ticket
+  C->>Q: Points the camera at it
+  Q->>Q: jsqr reads the code from camera frames
+  Q->>API: ticketCode
+  API->>API: requireEventStaff: signed in, and manages this event
+  API->>CI: checkIn(actor, eventId, ticketCode, now)
+  CI->>CI: Verify the signature, without touching the database
+  alt Signature is wrong
+    CI-->>Q: 404 INVALID_TICKET
+    Q-->>C: Red card: not a valid ticket
+  else Signature is right
+    CI->>D: UPDATE registration SET checked_in_at WHERE confirmed AND not checked in
+    alt One row changed
+      CI->>D: INSERT audit_logs entry
+      CI-->>Q: 200, person and counts
+      Q-->>C: Green card: name, photo, roll number, team
+    else No row changed (already scanned on another phone)
+      CI-->>Q: 409 ALREADY_CHECKED_IN, who and when
+      Q-->>C: Amber card: don't let them in twice
+    end
+  end
+  Note over Q,D: If the camera fails, typing the code or searching by name uses the same service
