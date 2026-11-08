@@ -1,0 +1,32 @@
+sequenceDiagram
+  title Registering for an event when seats may run out
+  actor S as Student
+  participant P as Event page
+  participant A as Server action
+  participant R as Registration service
+  participant D as PostgreSQL
+  participant N as Notifications and email
+
+  S->>P: Clicks Register
+  P->>A: registerAction(eventId)
+  A->>A: requireRole(STUDENT): session re-read from the database
+  A->>R: registerForEvent(student, eventId, now)
+  R->>D: BEGIN, SELECT event FOR UPDATE
+  Note over R,D: Other changes to this event wait here,<br/>so seats can't be oversold
+  D-->>R: Event row, now locked
+  R->>R: Check window, eligibility, verified email, no duplicate
+  R->>D: Count seats taken
+  D-->>R: Seats taken
+  alt A seat is free
+    R->>R: Issue a signed ticket code
+    R->>D: INSERT registration (CONFIRMED, ticket code)
+  else Event is full
+    R->>D: INSERT registration (WAITLISTED, next position)
+  end
+  R->>D: COMMIT, releasing the lock
+  R-->>A: Outcome and emails to send
+  A-->>P: "You're in", page refreshes
+  P-->>S: Shows registered or number in line
+  A->>N: deliver(emails) after the response
+  N->>D: Save bell notification
+  N-->>S: Email with QR ticket

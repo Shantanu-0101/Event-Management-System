@@ -1,0 +1,31 @@
+sequenceDiagram
+  title Issuing and verifying a certificate
+  actor C as Coordinator
+  actor S as Student
+  actor V as Anyone verifying
+  participant A as Server action
+  participant CS as Certificate service
+  participant D as PostgreSQL
+  participant PDF as PDF drawing (pdf-lib)
+
+  C->>A: Issue certificates (event has ended)
+  A->>CS: generateCertificates(actor, eventId, now)
+  CS->>D: BEGIN, lock event, read attendance and results
+  CS->>CS: Attended: participation. Won and attended: merit too
+  CS->>D: INSERT certificates with random verify codes, COMMIT
+  CS-->>C: How many were issued
+  CS-->>S: Email and bell: your certificates are ready
+
+  S->>A: GET /api/v1/certificates/:id
+  A->>CS: Is this theirs, or their event's staff?
+  CS->>D: Read the certificate
+  CS->>PDF: Draw it now, with a QR code linking to the verify page
+  PDF-->>S: PDF download
+
+  V->>A: Scans the QR: /certificates/verify?code=
+  A->>D: Find the certificate by code
+  alt Found
+    D-->>V: Name, team, event, dates and type
+  else Withdrawn or never existed
+    D-->>V: Not a valid certificate
+  end

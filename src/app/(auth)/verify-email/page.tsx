@@ -38,7 +38,7 @@ async function VerifyEmailContent({
           )}
         </div>
         <CardTitle className="text-xl">
-          {ok ? "Email verified" : "This link no longer works"}
+          <h1>{ok ? "Email verified" : "This link no longer works"}</h1>
         </CardTitle>
         <CardDescription>
           {ok

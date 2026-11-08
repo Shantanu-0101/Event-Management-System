@@ -5,15 +5,18 @@ import type { Email } from "@/lib/email";
 import { isEligible, teamSharesSeat } from "@/lib/events";
 import { prisma } from "@/lib/prisma";
 import {
+  confirmedEmail,
   eventCancelledEmail,
   inviteDeclinedEmail,
   memberLeftEmail,
   promotedEmail,
   removedFromTeamEmail,
   teamBelowMinimumEmail,
+  teamConfirmedEmail,
   teamDisbandedEmail,
   teamInviteEmail,
-  teamRegisteredEmail,
+  teamWaitlistedEmail,
+  waitlistedEmail,
 } from "@/lib/registration-emails";
 import {
   canChangeRegistration,
@@ -45,7 +48,7 @@ export class RegistrationError extends Error {
 }
 
 type Tx = Prisma.TransactionClient;
-type Student = Applicant & { id: string; name: string };
+type Student = Applicant & { id: string; name: string; email: string };
 export type Outcome = { emails: Email[] };
 
 const ACTIVE: RegistrationStatus[] = ["CONFIRMED", "WAITLISTED"];
@@ -59,7 +62,10 @@ export async function lockEvent(tx: Tx, id: string) {
   await tx.$queryRaw`SELECT id FROM events WHERE id = ${id} FOR UPDATE`;
   return tx.event.findUnique({
     where: { id },
-    include: { eligibility: { select: { departmentId: true, year: true } } },
+    include: {
+      eligibility: { select: { departmentId: true, year: true } },
+      venue: { select: { name: true, building: true } },
+    },
   });
 }
 
@@ -84,7 +90,7 @@ async function withLockedEvent<T>(
 }
 
 const teamInclude = {
-  leader: { select: { name: true, email: true } },
+  leader: { select: { id: true, name: true, email: true } },
   members: { include: { user: { select: { id: true, name: true, email: true } } } },
 } satisfies Prisma.TeamInclude;
 
@@ -187,7 +193,7 @@ export async function promoteWaitlist(tx: Tx, event: LockedEvent): Promise<Email
     select: {
       id: true,
       waitlistPosition: true,
-      user: { select: { name: true, email: true } },
+      user: { select: { id: true, name: true, email: true } },
       team: { select: { name: true } },
     },
   });
@@ -202,14 +208,16 @@ export async function promoteWaitlist(tx: Tx, event: LockedEvent): Promise<Email
 
   const confirmed = waiting.filter((r) => promoted.includes(r.waitlistPosition ?? 0));
   // One update each, because every person gets a different ticket.
-  for (const { id } of confirmed) {
+  const emails: Email[] = [];
+  for (const r of confirmed) {
+    const ticketCode = newTicketCode();
     await tx.registration.update({
-      where: { id },
-      data: { status: "CONFIRMED", waitlistPosition: null, ticketCode: newTicketCode() },
+      where: { id: r.id },
+      data: { status: "CONFIRMED", waitlistPosition: null, ticketCode },
     });
+    emails.push(promotedEmail(r.user, event, { id: r.id, ticketCode }, r.team?.name));
   }
-
-  return confirmed.map((r) => promotedEmail(r.user, event, r.team?.name));
+  return emails;
 }
 
 // ─── Solo registration ──────────────────────────────────────────────────────
@@ -243,7 +251,14 @@ export async function registerForEvent(student: Student, eventId: string, now: D
       eventId,
       status: place.status,
     });
-    return { status: place.status };
+    return {
+      status: place.status,
+      emails: [
+        place.status === "CONFIRMED"
+          ? confirmedEmail(student, event, registration)
+          : waitlistedEmail(student, event),
+      ],
+    };
   });
 }
 
@@ -301,7 +316,7 @@ async function syncTeamRegistration(
 ): Promise<Email[]> {
   const accepted = await tx.teamMember.findMany({
     where: { teamId: team.id, status: "ACCEPTED" },
-    select: { userId: true, user: { select: { name: true, email: true } } },
+    select: { userId: true, user: { select: { id: true, name: true, email: true } } },
   });
   const current = await tx.registration.findMany({
     where: { teamId: team.id, status: { in: ACTIVE } },
@@ -321,17 +336,21 @@ async function syncTeamRegistration(
 
   const registered = new Set(current.map((r) => r.userId));
   const joining = accepted.filter((m) => !registered.has(m.userId));
-  for (const { userId } of joining) {
+  const emails: Email[] = [];
+  for (const { userId, user } of joining) {
     const saved = withTicket(place);
-    await tx.registration.upsert({
+    const registration = await tx.registration.upsert({
       where: { eventId_userId: { eventId: event.id, userId } },
       create: { eventId: event.id, userId, teamId: team.id, ...saved },
       update: { teamId: team.id, ...saved },
     });
+    emails.push(
+      place.status === "CONFIRMED"
+        ? teamConfirmedEmail(user, event, team.name, registration)
+        : teamWaitlistedEmail(user, event, team.name),
+    );
   }
-  return joining.map((m) =>
-    teamRegisteredEmail(m.user, event, team.name, place.status === "WAITLISTED"),
-  );
+  return emails;
 }
 
 /** Starts a team on a team event, with the student as its leader. */
@@ -576,21 +595,25 @@ export async function disbandTeam(
 
 // ─── Event cancelled ────────────────────────────────────────────────────────
 
-/** Everyone holding a place or on a team for this event gets told it's off. */
+/** Everyone who needs to hear about this event: holding a place, or on a team still forming. */
+export function eventAudience(db: Tx, eventId: string) {
+  return db.user.findMany({
+    where: {
+      isActive: true,
+      OR: [
+        { registrations: { some: { eventId, status: { in: ACTIVE } } } },
+        { teamMemberships: { some: { status: "ACCEPTED", team: { eventId } } } },
+      ],
+    },
+    select: { id: true, name: true, email: true },
+  });
+}
+
 export async function eventCancelledEmails(
   tx: Tx,
   event: { id: string; title: string; slug: string },
 ) {
-  const people = await tx.user.findMany({
-    where: {
-      isActive: true,
-      OR: [
-        { registrations: { some: { eventId: event.id, status: { in: ACTIVE } } } },
-        { teamMemberships: { some: { status: "ACCEPTED", team: { eventId: event.id } } } },
-      ],
-    },
-    select: { name: true, email: true },
-  });
+  const people = await eventAudience(tx, event.id);
   return people.map((person) => eventCancelledEmail(person, event));
 }
 
@@ -612,7 +635,7 @@ export async function getRegistrationView(eventId: string, userId: string) {
   const [registration, team, invites] = await Promise.all([
     prisma.registration.findUnique({
       where: { eventId_userId: { eventId, userId } },
-      select: { id: true, status: true, waitlistPosition: true },
+      select: { id: true, status: true, waitlistPosition: true, checkedInAt: true },
     }),
     prisma.team.findFirst({
       where: { eventId, members: { some: { userId, status: "ACCEPTED" } } },
@@ -672,8 +695,14 @@ export async function getMyEvents(userId: string) {
         status: true,
         waitlistPosition: true,
         checkedInAt: true,
-        event: { select: myEventSelect },
+        event: {
+          select: {
+            ...myEventSelect,
+            feedback: { where: { userId }, select: { id: true } },
+          },
+        },
         team: { select: { name: true } },
+        certificates: { orderBy: { type: "asc" }, select: { id: true, type: true } },
       },
     }),
     prisma.teamMember.findMany({

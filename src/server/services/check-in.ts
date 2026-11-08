@@ -7,6 +7,7 @@ import {
 } from "@/lib/check-in";
 import { prisma } from "@/lib/prisma";
 import { verifyTicketCode } from "@/lib/tickets";
+import { removeStaleCertificates } from "@/server/services/certificates";
 import { canManageEvent } from "@/server/services/events";
 import type { CurrentUser } from "@/server/session";
 
@@ -188,6 +189,8 @@ export async function undoCheckIn(
         meta: { eventId },
       },
     });
+    // Someone who wasn't there can't keep a certificate saying they were.
+    await removeStaleCertificates(tx, eventId);
   });
 
   return { counts: await getCheckInCounts(eventId) };

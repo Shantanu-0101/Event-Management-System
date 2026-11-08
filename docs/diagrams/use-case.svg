@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 760" width="1180" height="760" role="img" aria-labelledby="use-case-title" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#18181b">
+<title id="use-case-title">Use-case diagram: what visitors, students, coordinators and admins can do in Campus Events</title>
+<rect width="1180" height="760" fill="#ffffff"/>
+<rect x="210" y="22" width="760" height="716" rx="12" fill="none" stroke="#27272a" stroke-width="1.5"/>
+<text x="590" y="46" text-anchor="middle" font-weight="600" font-size="15">Campus Events</text>
+<line x1="102" y1="162" x2="250" y2="76" stroke="#a1a1aa" stroke-width="1.2"/>
+<line x1="102" y1="162" x2="250" y2="130" stroke="#a1a1aa" stroke-width="1.2"/>
+<line x1="102" y1="162" x2="250" y2="184" stroke="#a1a1aa" stroke-width="1.2"/>
+<line x1="102" y1="162" x2="250" y2="238" stroke="#a1a1aa" stroke-width="1.2"/>
+<line x1="102" y1="462" x2="250" y2="292" stroke="#a1a1aa" stroke-width="1.2"/>
+<line x1="102" y1="462" x2="250" y2="346" stroke="#a1a1aa" stroke-width="1.2"/>
+<line x1="102" y1="462" x2="250" y2="400" stroke="#a1a1aa" stroke-width="1.2"/>
+<line x1="102" y1="462" x2="250" y2="454" stroke="#a1a1aa" stroke-width="1.2"/>
+<line x1="102" y1="462" x2="250" y2="508" stroke="#a1a1aa" stroke-width="1.2"/>
+<line x1="102" y1="462" x2="250" y2="562" stroke="#a1a1aa" stroke-width="1.2"/>
+<line x1="102" y1="462" x2="250" y2="616" stroke="#a1a1aa" stroke-width="1.2"/>
+<line x1="1078" y1="222" x2="945" y2="76" stroke="#a1a1aa" stroke-width="1.2"/>
+<line x1="1078" y1="222" x2="945" y2="130" stroke="#a1a1aa" stroke-width="1.2"/>
+<line x1="1078" y1="222" x2="945" y2="184" stroke="#a1a1aa" stroke-width="1.2"/>
+<line x1="1078" y1="222" x2="945" y2="238" stroke="#a1a1aa" stroke-width="1.2"/>
+<line x1="1078" y1="222" x2="945" y2="292" stroke="#a1a1aa" stroke-width="1.2"/>
+<line x1="1078" y1="222" x2="945" y2="346" stroke="#a1a1aa" stroke-width="1.2"/>
+<line x1="1078" y1="222" x2="945" y2="400" stroke="#a1a1aa" stroke-width="1.2"/>
+<line x1="1078" y1="552" x2="945" y2="454" stroke="#a1a1aa" stroke-width="1.2"/>
+<line x1="1078" y1="552" x2="945" y2="508" stroke="#a1a1aa" stroke-width="1.2"/>
+<line x1="1078" y1="552" x2="945" y2="562" stroke="#a1a1aa" stroke-width="1.2"/>
+<line x1="1078" y1="552" x2="945" y2="616" stroke="#a1a1aa" stroke-width="1.2"/>
+<line x1="1078" y1="552" x2="945" y2="670" stroke="#a1a1aa" stroke-width="1.2"/>
+<ellipse cx="400" cy="76" rx="150" ry="22" fill="#f4f4f5" stroke="#52525b" stroke-width="1.3"/><text x="400" y="80" text-anchor="middle">Browse and search events</text>
+<ellipse cx="400" cy="130" rx="150" ry="22" fill="#f4f4f5" stroke="#52525b" stroke-width="1.3"/><text x="400" y="134" text-anchor="middle">View event details</text>
+<ellipse cx="400" cy="184" rx="150" ry="22" fill="#f4f4f5" stroke="#52525b" stroke-width="1.3"/><text x="400" y="188" text-anchor="middle">Sign up, log in, reset password</text>
+<ellipse cx="400" cy="238" rx="150" ry="22" fill="#f4f4f5" stroke="#52525b" stroke-width="1.3"/><text x="400" y="242" text-anchor="middle">Verify a certificate</text>
+<ellipse cx="400" cy="292" rx="150" ry="22" fill="#f4f4f5" stroke="#52525b" stroke-width="1.3"/><text x="400" y="296" text-anchor="middle">Manage own profile</text>
+<ellipse cx="400" cy="346" rx="150" ry="22" fill="#f4f4f5" stroke="#52525b" stroke-width="1.3"/><text x="400" y="350" text-anchor="middle">Register or join the waitlist</text>
+<ellipse cx="400" cy="400" rx="150" ry="22" fill="#f4f4f5" stroke="#52525b" stroke-width="1.3"/><text x="400" y="404" text-anchor="middle">Create or join a team</text>
+<ellipse cx="400" cy="454" rx="150" ry="22" fill="#f4f4f5" stroke="#52525b" stroke-width="1.3"/><text x="400" y="458" text-anchor="middle">Show QR ticket</text>
+<ellipse cx="400" cy="508" rx="150" ry="22" fill="#f4f4f5" stroke="#52525b" stroke-width="1.3"/><text x="400" y="512" text-anchor="middle">Cancel a registration</text>
+<ellipse cx="400" cy="562" rx="150" ry="22" fill="#f4f4f5" stroke="#52525b" stroke-width="1.3"/><text x="400" y="566" text-anchor="middle">Download certificates</text>
+<ellipse cx="400" cy="616" rx="150" ry="22" fill="#f4f4f5" stroke="#52525b" stroke-width="1.3"/><text x="400" y="620" text-anchor="middle">Give feedback</text>
+<ellipse cx="780" cy="76" rx="165" ry="22" fill="#f4f4f5" stroke="#52525b" stroke-width="1.3"/><text x="780" y="80" text-anchor="middle">Edit own events</text>
+<ellipse cx="780" cy="130" rx="165" ry="22" fill="#f4f4f5" stroke="#52525b" stroke-width="1.3"/><text x="780" y="134" text-anchor="middle">Close registration</text>
+<ellipse cx="780" cy="184" rx="165" ry="22" fill="#f4f4f5" stroke="#52525b" stroke-width="1.3"/><text x="780" y="188" text-anchor="middle">View and export registrations</text>
+<ellipse cx="780" cy="238" rx="165" ry="22" fill="#f4f4f5" stroke="#52525b" stroke-width="1.3"/><text x="780" y="242" text-anchor="middle">Check in by QR or search</text>
+<ellipse cx="780" cy="292" rx="165" ry="22" fill="#f4f4f5" stroke="#52525b" stroke-width="1.3"/><text x="780" y="296" text-anchor="middle">Send announcements</text>
+<ellipse cx="780" cy="346" rx="165" ry="22" fill="#f4f4f5" stroke="#52525b" stroke-width="1.3"/><text x="780" y="350" text-anchor="middle">Enter results</text>
+<ellipse cx="780" cy="400" rx="165" ry="22" fill="#f4f4f5" stroke="#52525b" stroke-width="1.3"/><text x="780" y="404" text-anchor="middle">Issue certificates</text>
+<ellipse cx="780" cy="454" rx="165" ry="22" fill="#f4f4f5" stroke="#52525b" stroke-width="1.3"/><text x="780" y="458" text-anchor="middle">Create, publish and cancel events</text>
+<ellipse cx="780" cy="508" rx="165" ry="22" fill="#f4f4f5" stroke="#52525b" stroke-width="1.3"/><text x="780" y="512" text-anchor="middle">Assign coordinators</text>
+<ellipse cx="780" cy="562" rx="165" ry="22" fill="#f4f4f5" stroke="#52525b" stroke-width="1.3"/><text x="780" y="566" text-anchor="middle">Manage users and roles</text>
+<ellipse cx="780" cy="616" rx="165" ry="22" fill="#f4f4f5" stroke="#52525b" stroke-width="1.3"/><text x="780" y="620" text-anchor="middle">Manage departments, categories, venues</text>
+<ellipse cx="780" cy="670" rx="165" ry="22" fill="#f4f4f5" stroke="#52525b" stroke-width="1.3"/><text x="780" y="674" text-anchor="middle">View college reports</text>
+<g stroke="#27272a" stroke-width="2" fill="none"><circle cx="80" cy="136" r="12"/><line x1="80" y1="148" x2="80" y2="182"/><line x1="60" y1="160" x2="100" y2="160"/><line x1="80" y1="182" x2="64" y2="208"/><line x1="80" y1="182" x2="96" y2="208"/></g><text x="80" y="228" text-anchor="middle" font-weight="600">Visitor</text><g stroke="#27272a" stroke-width="2" fill="none"><circle cx="80" cy="436" r="12"/><line x1="80" y1="448" x2="80" y2="482"/><line x1="60" y1="460" x2="100" y2="460"/><line x1="80" y1="482" x2="64" y2="508"/><line x1="80" y1="482" x2="96" y2="508"/></g><text x="80" y="528" text-anchor="middle" font-weight="600">Student</text><g stroke="#27272a" stroke-width="2" fill="none"><circle cx="1100" cy="196" r="12"/><line x1="1100" y1="208" x2="1100" y2="242"/><line x1="1080" y1="220" x2="1120" y2="220"/><line x1="1100" y1="242" x2="1084" y2="268"/><line x1="1100" y1="242" x2="1116" y2="268"/></g><text x="1100" y="288" text-anchor="middle" font-weight="600">Coordinator</text><g stroke="#27272a" stroke-width="2" fill="none"><circle cx="1100" cy="526" r="12"/><line x1="1100" y1="538" x2="1100" y2="572"/><line x1="1080" y1="550" x2="1120" y2="550"/><line x1="1100" y1="572" x2="1084" y2="598"/><line x1="1100" y1="572" x2="1116" y2="598"/></g><text x="1100" y="618" text-anchor="middle" font-weight="600">Admin</text>
+<line x1="80" y1="420" x2="80" y2="246" stroke="#27272a" stroke-width="1.5"/><polygon points="80,236 73,248 87,248" fill="#fff" stroke="#27272a" stroke-width="1.5"/><line x1="1100" y1="510" x2="1100" y2="306" stroke="#27272a" stroke-width="1.5"/><polygon points="1100,296 1093,308 1107,308" fill="#fff" stroke="#27272a" stroke-width="1.5"/>
+<text x="96" y="330" font-size="11" fill="#52525b">is a</text>
+<text x="1054" y="405" font-size="11" fill="#52525b">is a</text>
+</svg>
