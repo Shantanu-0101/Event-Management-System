@@ -7,6 +7,7 @@ const tabs = [
   { href: "/manage/departments", label: "Departments" },
   { href: "/manage/categories", label: "Categories" },
   { href: "/manage/venues", label: "Venues" },
+  { href: "/manage/reports", label: "Reports" },
 ];
 
 /** Page title plus links between the admin's user and master-data pages. */

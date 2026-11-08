@@ -1,4 +1,4 @@
-import { CircleCheckIcon, HourglassIcon } from "lucide-react";
+import { CircleCheckIcon, HourglassIcon, QrCodeIcon } from "lucide-react";
 import { effectiveStatus } from "@/lib/events";
 import {
   canChangeRegistration,
@@ -131,6 +131,7 @@ function SoloPanel({
     return (
       <div className="grid gap-3">
         <Standing waitlisted={waitlisted} rank={view.waitlistRank} over={isOver(event, now)} />
+        <TicketLink registration={view.registration} over={isOver(event, now)} />
         {canChangeRegistration(event, now) ? (
           <div>
             <ConfirmButton
@@ -173,6 +174,23 @@ function SoloPanel({
           ? "All seats are taken. If someone cancels, the first person waiting gets the seat and an email."
           : "One click. We use the details from your profile."}
       </p>
+    </div>
+  );
+}
+
+function TicketLink({
+  registration,
+  over,
+}: {
+  registration: NonNullable<View["registration"]>;
+  over: boolean;
+}) {
+  if (registration.status !== "CONFIRMED" || over) return null;
+  return (
+    <div>
+      <ButtonLink href={`/my-events/${registration.id}/ticket`}>
+        <QrCodeIcon data-icon="inline-start" /> Show ticket
+      </ButtonLink>
     </div>
   );
 }
@@ -299,11 +317,14 @@ function TeamCard({
       <div className="grid gap-2">
         <p className="text-lg font-semibold break-words">{team.name}</p>
         {view.registration ? (
-          <Standing
-            waitlisted={view.registration.status === "WAITLISTED"}
-            rank={view.waitlistRank}
-            over={over}
-          />
+          <>
+            <Standing
+              waitlisted={view.registration.status === "WAITLISTED"}
+              rank={view.waitlistRank}
+              over={over}
+            />
+            <TicketLink registration={view.registration} over={over} />
+          </>
         ) : (
           <p className="text-sm text-muted-foreground">
             {canChange

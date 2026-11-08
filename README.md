@@ -2,7 +2,7 @@
 
 College event management: students find events, register solo or as a team, and check in with a QR ticket; coordinators run their events; admins manage everything and see reports.
 
-Final-year project. The full spec and the 12-week build plan live in the project spec doc. This repo is at **Phase 3 (registration)**: on top of logins, master data and event pages, students register solo or as a team, join a waitlist when an event is full, and follow it all on My events. QR tickets and check-in come next.
+Final-year project. The full spec and the 12-week build plan live in the project spec doc. This repo is at **Phase 4 (tickets, check-in, dashboards), the MVP**: students sign up, register solo or as a team and get a QR ticket; coordinators scan it with a phone camera at the door and export registrations; admins see attendance across the college. Emails with the QR, results, certificates and feedback come next.
 
 ## Tech stack
 
@@ -32,12 +32,12 @@ Log in at `/login` with the seed admin's email and password. Without `RESEND_API
 
 ## Logins and roles
 
-| Role        | Gets                                                              | Can't open                      |
-| ----------- | ----------------------------------------------------------------- | ------------------------------- |
-| Visitor     | Home, sign up, log in                                             | `/profile`, `/manage/*` (login) |
-| Student     | Profile, registration, teams, My events                           | `/manage/*` (403)               |
-| Coordinator | Profile; event and check-in pages from Phase 2 and 4              | Admin pages (403)               |
-| Admin       | Users (search, role, deactivate), departments, categories, venues | —                               |
+| Role        | Gets                                                    | Can't open                      |
+| ----------- | ------------------------------------------------------- | ------------------------------- |
+| Visitor     | Home, sign up, log in                                   | `/profile`, `/manage/*` (login) |
+| Student     | Profile, registration, teams, My events, QR ticket      | `/manage/*` (403)               |
+| Coordinator | Their events: edit, registrations and exports, check-in | Admin pages (403)               |
+| Admin       | Everything: users, master data, every event, reports    | —                               |
 
 - Passwords are hashed with bcrypt; logins are Auth.js JWT cookies.
 - Every page and server action calls `requireRole()` (`src/server/session.ts`), which re-reads the user from the database. `src/proxy.ts` adds a fast redirect or HTTP 403 from the cookie, using the rules in `src/lib/access.ts`.
@@ -52,6 +52,27 @@ Log in at `/login` with the seed admin's email and password. Without `RESEND_API
 - When a seat frees up, the waitlist is walked in order and each place that fits is promoted. A team too big for the seats left stays at the front while a smaller one behind it goes in.
 - Registering, cancelling and team changes all end when registration closes. Once people have joined, an event can't switch between solo and team, change its team settings, or lower its limit below the seats taken.
 - Rules that need no database live in `src/lib/registrations.ts`. The event page uses them to explain a disabled button and the service uses them to refuse the request.
+
+## Tickets and check-in
+
+- Each confirmed person gets their own ticket code, like `K7QM-3XRT-9PWA-HC2D`: 10 random characters and a 6-character signature made with `AUTH_SECRET` (`src/lib/tickets.ts`). It isn't a database id, and the same code works in the QR or typed by hand. Cancelling kills the code; registering again issues a new one.
+- `/manage/check-in/<event>` reads QR codes with the phone camera (`jsqr` on camera frames) and shows name, photo, roll number, team and a live counter. Browsers only offer the camera on https or localhost, so phones need the deployed site; if the camera fails, search by name, roll number, team or ticket code works the same.
+- A check-in only updates a confirmed registration not yet checked in, in one statement, so two phones scanning one ticket can't both succeed. A second scan says who let them in and when. Mistakes can be undone. Check-ins, undos and exports are all written to `audit_logs`.
+- Check-in opens a day before an event starts and closes a day after it ends.
+- Registrations can be filtered and exported as CSV or Excel, and an export holds exactly what the filters show. Ticket codes are never exported, and CSV cells that a spreadsheet would run as formulas are neutralised.
+- The attendance rate on `/manage/reports` only counts finished events where at least one person was checked in. An event that never scanned anyone didn't take attendance, and counting it would read as everyone staying away.
+
+### API
+
+Under `/api/v1`, for signed-in admins and that event's coordinators. Errors look like `{ "error": { "code": "...", "message": "..." } }`.
+
+| Method | Path                                                                                        | Purpose                                         |
+| ------ | ------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| GET    | `/events/:id/checkin`                                                                       | Live counter: registered and checked in         |
+| POST   | `/events/:id/checkin`                                                                       | Check in; body `ticketCode` or `registrationId` |
+| DELETE | `/events/:id/checkin/:registrationId`                                                       | Undo a check-in                                 |
+| GET    | `/events/:id/checkin/search?q=`                                                             | Find a confirmed person                         |
+| GET    | `/events/:id/registrations?format=json\|csv\|xlsx&q=&status=&attendance=&department=&year=` | List or export registrations                    |
 
 ## Scripts
 
