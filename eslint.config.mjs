@@ -18,6 +18,8 @@ const eslintConfig = defineConfig([
     // Generated or not part of the new app:
     "src/generated/**",
     "legacy-flask/**",
+    "test-results/**",
+    "playwright-report/**",
   ]),
 ]);
 

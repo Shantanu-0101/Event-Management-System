@@ -3,6 +3,7 @@ import Link from "next/link";
 import { CalendarDaysIcon, LogOutIcon, MenuIcon, UserIcon } from "lucide-react";
 import { getNavItems } from "@/lib/nav";
 import { logoutAction } from "@/server/actions/auth";
+import { countUnread } from "@/server/services/notifications";
 import { getCurrentUser, type CurrentUser } from "@/server/session";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { NotificationBell } from "@/components/notification-bell";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 // The logo and theme switch are static; the menus depend on who is logged
@@ -46,6 +48,7 @@ export function SiteHeader() {
 async function HeaderMenus() {
   const user = await getCurrentUser();
   const items = getNavItems(user?.role ?? null);
+  const unread = user ? await countUnread(user.id) : 0;
 
   return (
     <>
@@ -59,7 +62,10 @@ async function HeaderMenus() {
 
       <div className="ml-auto flex items-center gap-1">
         {user ? (
-          <AccountMenu user={user} />
+          <>
+            <NotificationBell initialUnread={unread} />
+            <AccountMenu user={user} />
+          </>
         ) : (
           <>
             <ButtonLink href="/login" variant="ghost" size="sm" className="hidden sm:inline-flex">
@@ -121,7 +127,7 @@ function AccountMenu({ user }: { user: CurrentUser }) {
               variant="ghost"
               size="icon"
               className="rounded-full"
-              aria-label="Account menu"
+              aria-label={`${initials(user.name)}, account menu`}
             />
           }
         >

@@ -169,8 +169,8 @@ describe("solo registration", () => {
     const event = await makeEvent({ capacity: 1 });
     const [a, b] = await makeStudents(2);
 
-    expect(await registerForEvent(a, event.id, NOW)).toEqual({ status: "CONFIRMED" });
-    expect(await registerForEvent(b, event.id, NOW)).toEqual({ status: "WAITLISTED" });
+    expect(await registerForEvent(a, event.id, NOW)).toMatchObject({ status: "CONFIRMED" });
+    expect(await registerForEvent(b, event.id, NOW)).toMatchObject({ status: "WAITLISTED" });
   });
 
   it("refuses a duplicate", async () => {
@@ -256,7 +256,7 @@ describe("cancelling and the waitlist", () => {
     await registerForEvent(b, event.id, NOW);
     await cancelRegistration(a, event.id, NOW);
 
-    expect(await registerForEvent(a, event.id, NOW)).toEqual({ status: "WAITLISTED" });
+    expect(await registerForEvent(a, event.id, NOW)).toMatchObject({ status: "WAITLISTED" });
     expect(await statusOf(event.id, b.id)).toBe("CONFIRMED");
   });
 

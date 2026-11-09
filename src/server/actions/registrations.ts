@@ -3,9 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { STUDENT_ONLY } from "@/lib/access";
-import { sendEmails, type Email } from "@/lib/email";
+import type { Email } from "@/lib/email";
 import { failed, invalid, type FormState } from "@/lib/form-state";
+import { tryAgainMessage } from "@/lib/rate-limits";
 import { teamInviteSchema, teamNameSchema } from "@/lib/schemas";
+import { deliver } from "@/server/services/notifications";
+import { hitRateLimit } from "@/server/services/rate-limit";
 import {
   cancelRegistration,
   createTeam,
@@ -33,7 +36,7 @@ async function run(
 ): Promise<FormState> {
   try {
     const { emails = [] } = await change();
-    if (emails.length > 0) after(() => sendEmails(emails));
+    after(() => deliver(emails));
     revalidatePath("/", "layout");
     return { ok: true, message };
   } catch (e) {
@@ -50,7 +53,7 @@ export async function registerAction(_prev: FormState, formData: FormData): Prom
   const me = await requireRole(STUDENT_ONLY);
   return run(
     formData,
-    () => registerForEvent(me, text(formData, "eventId"), new Date()).then(() => ({})),
+    () => registerForEvent(me, text(formData, "eventId"), new Date()),
     "You're in.",
   );
 }
@@ -83,6 +86,10 @@ export async function inviteMemberAction(_prev: FormState, formData: FormData): 
   const me = await requireRole(STUDENT_ONLY);
   const parsed = teamInviteSchema.safeParse({ member: formData.get("member") });
   if (!parsed.success) return invalid(parsed.error, formData);
+
+  // Each invite emails someone else, so it can't be left open to spamming.
+  const limit = await hitRateLimit("inviteUser", me.id);
+  if (!limit.ok) return failed(tryAgainMessage(limit.retryAfterSeconds), formData);
 
   return run(
     formData,

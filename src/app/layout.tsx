@@ -32,11 +32,19 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="flex min-h-full flex-col">
         <ThemeProvider>
+          <a
+            href="#main"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground"
+          >
+            Skip to content
+          </a>
           <SiteHeader />
           <Suspense>
             <VerifyEmailBanner />
           </Suspense>
-          <main className="flex-1">{children}</main>
+          <main id="main" tabIndex={-1} className="flex-1 outline-none">
+            {children}
+          </main>
           <SiteFooter />
           <Toaster richColors closeButton />
         </ThemeProvider>

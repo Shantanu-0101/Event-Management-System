@@ -4,11 +4,13 @@ import { revalidatePath } from "next/cache";
 import { forbidden, redirect } from "next/navigation";
 import { after } from "next/server";
 import { ADMIN_ONLY, STAFF_ROLES } from "@/lib/access";
-import { sendEmails } from "@/lib/email";
 import { eventFormValues, eventSchema } from "@/lib/event-schema";
 import type { StatusAction } from "@/lib/events";
 import { failed, invalid, type FormState } from "@/lib/form-state";
+import { tryAgainMessage } from "@/lib/rate-limits";
 import { saveImage, savePdf, UploadError } from "@/lib/storage";
+import { deliver } from "@/server/services/notifications";
+import { hitRateLimit } from "@/server/services/rate-limit";
 import { requireRole } from "@/server/session";
 import {
   changeEventStatus,
@@ -41,7 +43,7 @@ export async function saveEventAction(_prev: FormState, formData: FormData): Pro
   try {
     if (id) {
       const emails = await updateEvent(me, id, parsed.data, new Date());
-      if (emails.length > 0) after(() => sendEmails(emails));
+      after(() => deliver(emails));
     } else {
       savedId = (await createEvent(me, parsed.data)).id;
     }
@@ -85,7 +87,7 @@ export async function changeEventStatusAction(
 
   try {
     const emails = await changeEventStatus(me, id, action, new Date());
-    if (emails.length > 0) after(() => sendEmails(emails));
+    after(() => deliver(emails));
   } catch (e) {
     if (e instanceof EventRuleError) return failed(e.message);
     throw e;
@@ -103,10 +105,13 @@ export async function changeEventStatusAction(
 export async function uploadEventFileAction(
   formData: FormData,
 ): Promise<{ url: string } | { error: string }> {
-  await requireRole(STAFF_ROLES);
+  const me = await requireRole(STAFF_ROLES);
   const kind = formData.get("kind");
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) return { error: "Choose a file." };
+
+  const limit = await hitRateLimit("uploadUser", me.id);
+  if (!limit.ok) return { error: tryAgainMessage(limit.retryAfterSeconds) };
 
   try {
     const url =

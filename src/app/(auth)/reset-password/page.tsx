@@ -29,7 +29,9 @@ async function ResetPasswordContent({
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl">This link no longer works</CardTitle>
+          <CardTitle className="text-xl">
+            <h1>This link no longer works</h1>
+          </CardTitle>
           <CardDescription>
             Reset links work once, for 1 hour. Ask for a new one and use the latest email.
           </CardDescription>
@@ -46,7 +48,9 @@ async function ResetPasswordContent({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-xl">Choose a new password</CardTitle>
+        <CardTitle className="text-xl">
+          <h1>Choose a new password</h1>
+        </CardTitle>
         <CardDescription>You&apos;ll be logged out on every other device.</CardDescription>
       </CardHeader>
       <CardContent>

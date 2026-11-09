@@ -1,9 +1,11 @@
 "use server";
 
 import { AuthError, CredentialsSignin } from "next-auth";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { safeNextPath } from "@/lib/access";
 import { failed, formValues, invalid, type FormState } from "@/lib/form-state";
+import { clientAddress, RATE_LIMITS, tryAgainMessage } from "@/lib/rate-limits";
 import {
   forgotPasswordSchema,
   loginSchema,
@@ -11,6 +13,7 @@ import {
   signupSchema,
 } from "@/lib/schemas";
 import { signIn, signOut } from "@/server/auth";
+import { hitRateLimit } from "@/server/services/rate-limit";
 import { getCurrentUser } from "@/server/session";
 import {
   createStudent,
@@ -19,6 +22,8 @@ import {
   sendVerificationEmail,
   UserRuleError,
 } from "@/server/services/users";
+
+const requestAddress = async () => clientAddress(await headers());
 
 export async function loginAction(_prev: FormState, formData: FormData): Promise<FormState> {
   const parsed = loginSchema.safeParse(Object.fromEntries(formData));
@@ -34,6 +39,9 @@ export async function loginAction(_prev: FormState, formData: FormData): Promise
     if (e instanceof CredentialsSignin && e.code === "inactive") {
       return failed("This account has been deactivated. Contact the event cell.", formData);
     }
+    if (e instanceof CredentialsSignin && e.code === "rate_limited") {
+      return failed(tryAgainMessage(RATE_LIMITS.loginAccount.windowSeconds), formData);
+    }
     if (e instanceof AuthError) return failed("Wrong email or password.", formData);
     throw e;
   }
@@ -47,6 +55,9 @@ export async function googleSignInAction(formData: FormData) {
 export async function signupAction(_prev: FormState, formData: FormData): Promise<FormState> {
   const parsed = signupSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return invalid(parsed.error, formData);
+
+  const limit = await hitRateLimit("signupAddress", await requestAddress());
+  if (!limit.ok) return failed(tryAgainMessage(limit.retryAfterSeconds), formData);
 
   try {
     await createStudent(parsed.data);
@@ -73,6 +84,10 @@ export async function resendVerificationAction(): Promise<FormState> {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   if (user.emailVerified) return { ok: true, message: "Your email is already verified." };
+
+  const limit = await hitRateLimit("verifyEmailUser", user.id);
+  if (!limit.ok) return failed(tryAgainMessage(limit.retryAfterSeconds));
+
   await sendVerificationEmail(user.id);
   return { ok: true, message: `We sent a new link to ${user.email}.` };
 }
@@ -84,7 +99,13 @@ export async function forgotPasswordAction(
   const parsed = forgotPasswordSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return invalid(parsed.error, formData);
 
-  await requestPasswordReset(parsed.data.email);
+  const limit = await hitRateLimit("forgotAddress", await requestAddress());
+  if (!limit.ok) return failed(tryAgainMessage(limit.retryAfterSeconds), formData);
+
+  // Past its limit, an email address quietly gets no more links.
+  const emailLimit = await hitRateLimit("forgotEmail", parsed.data.email);
+  if (emailLimit.ok) await requestPasswordReset(parsed.data.email);
+
   // Same answer whether or not the account exists, so the form can't be used
   // to find out who has an account.
   return {
@@ -100,6 +121,9 @@ export async function resetPasswordAction(
 ): Promise<FormState> {
   const parsed = resetPasswordSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return invalid(parsed.error, formData);
+
+  const limit = await hitRateLimit("resetAddress", await requestAddress());
+  if (!limit.ok) return failed(tryAgainMessage(limit.retryAfterSeconds));
 
   const ok = await resetPassword(parsed.data.token, parsed.data.password);
   if (!ok) return failed("This link has expired or was already used. Ask for a new one.");

@@ -9,7 +9,9 @@ export default function ForgotPasswordPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-xl">Forgot your password?</CardTitle>
+        <CardTitle className="text-xl">
+          <h1>Forgot your password?</h1>
+        </CardTitle>
         <CardDescription>We&apos;ll email you a link to choose a new one.</CardDescription>
       </CardHeader>
       <CardContent>

@@ -132,6 +132,20 @@ export const teamInviteSchema = z.object({
   member: trimmed(254).min(3, "Enter their roll number or email."),
 });
 
+export const announcementSchema = z.object({
+  subject: trimmed(120).min(3, "Enter a subject."),
+  body: trimmed(2000).min(3, "Enter your message."),
+});
+
+export const feedbackSchema = z.object({
+  rating: z.coerce
+    .number({ error: "Choose a rating." })
+    .int("Choose a rating.")
+    .min(1, "Choose a rating.")
+    .max(5, "Choose a rating."),
+  comment: optional(trimmed(1000)),
+});
+
 /** Turns a slug-like id from a name: "Paper Presentation" → "paper-presentation". */
 export function slugify(name: string) {
   return name

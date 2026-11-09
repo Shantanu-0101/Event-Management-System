@@ -162,3 +162,15 @@
     @apply underline underline-offset-4;
   }
 }
+
+/* Skeletons, dialogs and toasts move. Some people get unwell from that and ask their device not to. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

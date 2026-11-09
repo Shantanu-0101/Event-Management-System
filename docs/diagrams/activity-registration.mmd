@@ -1,0 +1,34 @@
+flowchart TD
+  start([Student opens an event]) --> login{Logged in?}
+  login -- No --> toLogin[Log in or sign up] --> login
+  login -- Yes --> verified{Email verified?}
+  verified -- No --> verify[Click the emailed link] --> verified
+  verified -- Yes --> window{Registration window open?}
+  window -- No --> closed([Button disabled, with the reason])
+  window -- Yes --> eligible{Department and year eligible?}
+  eligible -- No --> closed
+  eligible -- Yes --> kind{Solo or team?}
+
+  kind -- Solo --> lock[Lock the event's row]
+  kind -- Team --> create[Create a team, become leader]
+  create --> invite[Invite members by roll number or email]
+  invite --> accepted{Enough members accepted?}
+  accepted -- No, still waiting --> invite
+  accepted -- No, registration closed --> notRegistered([Team isn't registered])
+  accepted -- Yes --> lock
+
+  lock --> seats{Seat free?}
+  seats -- Yes --> confirmed[Confirmed: ticket issued, QR emailed]
+  seats -- No --> waitlist[Waitlisted, next in line]
+  waitlist --> freed{Someone cancels before it closes?}
+  freed -- Yes --> confirmed
+  freed -- No --> noSeat([No seat this time])
+
+  confirmed --> day[Event day: show QR at the door]
+  day --> scan{Ticket scans?}
+  scan -- Valid, first time --> in[Checked in]
+  scan -- Already used --> refused([Coordinator is warned])
+  scan -- Camera fails --> manual[Search by name or type the code] --> in
+  in --> ended[Event ends]
+  ended --> results[Coordinator enters results and issues certificates]
+  results --> finish([Student downloads certificates and gives feedback])

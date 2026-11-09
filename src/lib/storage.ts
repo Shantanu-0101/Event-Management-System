@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from "node:crypto";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { MAX_UPLOAD_BYTES } from "@/lib/upload-limits";
 
@@ -59,6 +59,17 @@ export async function savePdf(file: File, folder: string): Promise<string> {
   }
   refuseInProduction();
   return saveLocally(bytes, folder, name);
+}
+
+/** Reads back a file this module stored. Throws if it can't be reached. */
+export async function readUploadedFile(url: string): Promise<Uint8Array> {
+  if (!isUploadedUrl(url)) throw new Error("Not an uploaded file.");
+  if (url.startsWith("/uploads/")) {
+    return readFile(path.join(process.cwd(), "public", ...url.split("/").filter(Boolean)));
+  }
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Could not fetch the file: ${res.status}`);
+  return new Uint8Array(await res.arrayBuffer());
 }
 
 /** Checks the file's first bytes, so a renamed file can't pass as an image. */
