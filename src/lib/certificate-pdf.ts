@@ -114,7 +114,7 @@ function drawBuiltInDesign(page: PDFPage, fonts: Fonts) {
   const frame = { borderColor: INK, opacity: 0, borderOpacity: 1 };
   page.drawRectangle({ x: 24, y: 24, width: w - 48, height: h - 48, borderWidth: 2, ...frame });
   page.drawRectangle({ x: 32, y: 32, width: w - 64, height: h - 64, borderWidth: 0.5, ...frame });
-  centred(page, fonts.bold, "Campus Events", h * 0.86, 15, MUTED);
+  centred(page, fonts.bold, "CSMSS Events", h * 0.86, 15, MUTED);
 }
 
 async function drawCertificate(page: PDFPage, fonts: Fonts, data: CertificateData) {
@@ -186,7 +186,7 @@ export async function renderCertificates(
 ): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   doc.setTitle("Certificate");
-  doc.setProducer("Campus Events");
+  doc.setProducer("CSMSS Events");
   const fonts = {
     regular: await doc.embedFont(StandardFonts.Helvetica),
     bold: await doc.embedFont(StandardFonts.HelveticaBold),

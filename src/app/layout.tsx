@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: { default: "Campus Events", template: "%s · Campus Events" },
+  title: { default: "CSMSS Events", template: "%s · CSMSS Events" },
   description: "Find, register for and check in to college events.",
 };
 

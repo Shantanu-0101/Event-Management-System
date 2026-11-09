@@ -1,6 +1,7 @@
 import { Suspense } from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { CalendarDaysIcon, LogOutIcon, MenuIcon, UserIcon } from "lucide-react";
+import { LogOutIcon, MenuIcon, UserIcon } from "lucide-react";
 import { getNavItems } from "@/lib/nav";
 import { logoutAction } from "@/server/actions/auth";
 import { countUnread } from "@/server/services/notifications";
@@ -27,9 +28,17 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-4 px-4">
-        <Link href="/" className="flex items-center gap-2 font-semibold">
-          <CalendarDaysIcon className="size-5" aria-hidden />
-          <span>Campus Events</span>
+        <Link href="/" className="flex shrink-0 items-center gap-2 font-semibold">
+          {/* The college badge; the text beside it names the link, so alt is empty. */}
+          <Image
+            src="/csmss-logo.png"
+            alt=""
+            width={192}
+            height={160}
+            loading="eager"
+            className="h-10 w-auto"
+          />
+          <span>CSMSS Events</span>
         </Link>
         <Suspense
           fallback={

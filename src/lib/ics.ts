@@ -48,7 +48,7 @@ export function buildIcs(event: CalendarEvent) {
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Campus Events//Event Management//EN",
+    "PRODID:-//CSMSS Events//Event Management//EN",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     "BEGIN:VEVENT",

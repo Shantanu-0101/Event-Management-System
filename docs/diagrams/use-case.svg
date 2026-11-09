@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 760" width="1180" height="760" role="img" aria-labelledby="use-case-title" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#18181b">
-<title id="use-case-title">Use-case diagram: what visitors, students, coordinators and admins can do in Campus Events</title>
+<title id="use-case-title">Use-case diagram: what visitors, students, coordinators and admins can do in CSMSS Events</title>
 <rect width="1180" height="760" fill="#ffffff"/>
 <rect x="210" y="22" width="760" height="716" rx="12" fill="none" stroke="#27272a" stroke-width="1.5"/>
-<text x="590" y="46" text-anchor="middle" font-weight="600" font-size="15">Campus Events</text>
+<text x="590" y="46" text-anchor="middle" font-weight="600" font-size="15">CSMSS Events</text>
 <line x1="102" y1="162" x2="250" y2="76" stroke="#a1a1aa" stroke-width="1.2"/>
 <line x1="102" y1="162" x2="250" y2="130" stroke="#a1a1aa" stroke-width="1.2"/>
 <line x1="102" y1="162" x2="250" y2="184" stroke="#a1a1aa" stroke-width="1.2"/>
