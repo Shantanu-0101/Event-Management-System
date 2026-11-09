@@ -1,4 +1,4 @@
-# Campus Events
+# CSMSS Events
 
 College event management: students find events, register solo or as a team, and check in with a QR ticket; coordinators run their events; admins manage everything and see reports.
 

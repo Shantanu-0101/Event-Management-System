@@ -53,7 +53,7 @@ export function NoticeEmail({
           }}
         >
           <Text style={{ ...text, color: "#71717a", fontSize: "13px", fontWeight: 600 }}>
-            Campus Events
+            CSMSS Events
           </Text>
           <Heading as="h1" style={{ color: "#18181b", fontSize: "20px", margin: "0 0 16px" }}>
             {heading}
