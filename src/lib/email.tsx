@@ -75,7 +75,7 @@ async function toResendEmail(email: Email) {
     ? { contentId: QR_CONTENT_ID, code: formatTicketCode(email.ticketCode) }
     : undefined;
   return {
-    from: process.env.EMAIL_FROM ?? "Campus Events <onboarding@resend.dev>",
+    from: process.env.EMAIL_FROM ?? "CSMSS Events <onboarding@resend.dev>",
     to: [email.to],
     subject: email.subject,
     text: emailText(email),

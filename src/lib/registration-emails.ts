@@ -48,7 +48,7 @@ function eventEmail(
       paragraphs: Array.isArray(paragraphs) ? paragraphs : [paragraphs],
       details: extra.details,
       button: { text: extra.button?.text ?? "View event", url: appUrl(path) },
-      footer: `You're getting this because of your registration for ${event.title} on Campus Events.`,
+      footer: `You're getting this because of your registration for ${event.title} on CSMSS Events.`,
     },
   };
 }

@@ -58,7 +58,7 @@ export async function sendVerificationEmail(userId: string) {
   await sendEmail(
     linkEmail({
       to: user.email,
-      subject: "Verify your email for Campus Events",
+      subject: "Verify your email for CSMSS Events",
       greeting: `Hi ${user.name},`,
       body: "Confirm this is your email address to finish setting up your account.",
       buttonText: "Verify email",
@@ -85,7 +85,7 @@ export async function requestPasswordReset(email: string) {
   await sendEmail(
     linkEmail({
       to: user.email,
-      subject: "Reset your Campus Events password",
+      subject: "Reset your CSMSS Events password",
       greeting: `Hi ${user.name},`,
       body: "Someone asked to reset the password for this account. Choose a new one with the button below.",
       buttonText: "Choose a new password",

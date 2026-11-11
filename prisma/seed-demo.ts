@@ -31,7 +31,7 @@ function demoPassword(databaseUrl: string) {
 }
 
 async function main() {
-  const databaseUrl = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
+  const databaseUrl = process.env.DIRECT_URL || process.env.DATABASE_URL;
   if (!databaseUrl) throw new Error("DATABASE_URL is not set.");
   if (!process.env.AUTH_SECRET)
     throw new Error("AUTH_SECRET is not set; tickets are signed with it.");
@@ -39,6 +39,9 @@ async function main() {
   const password = demoPassword(databaseUrl);
   const prisma = new PrismaClient({
     adapter: new PrismaPg({ connectionString: databaseUrl }),
+    // A far-away database (Neon from India) needs more than the 5 s default
+    // for the clean-up transaction.
+    transactionOptions: { maxWait: 20_000, timeout: 120_000 },
   });
   try {
     const counts = await seedDemo(prisma, {

@@ -48,7 +48,7 @@ async function VerifyEmailContent({
       </CardHeader>
       <CardContent>
         <ButtonLink href="/" className="w-full">
-          Go to Campus Events
+          Go to CSMSS Events
         </ButtonLink>
       </CardContent>
     </Card>

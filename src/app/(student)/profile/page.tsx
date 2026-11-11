@@ -38,7 +38,7 @@ async function ProfileContent({ searchParams }: Pick<PageProps<"/profile">, "sea
     <>
       {welcome && (
         <Alert>
-          <AlertTitle>Welcome to Campus Events!</AlertTitle>
+          <AlertTitle>Welcome to CSMSS Events!</AlertTitle>
           <AlertDescription>
             Your account is ready. Check your inbox for the link to verify your email.
           </AlertDescription>
